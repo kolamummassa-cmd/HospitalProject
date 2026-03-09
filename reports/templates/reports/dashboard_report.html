@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard Report - HMS{% endblock %}
+
+{% block content %}
+<h1 class="mb-4"><i class="fas fa-chart-bar"></i> Dashboard Report</h1>
+
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="stat-card blue">
+            <i class="fas fa-users fa-2x"></i>
+            <div class="stat-value">{{ total_patients }}</div>
+            <div class="stat-label">Total Patients</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card green">
+            <i class="fas fa-stethoscope fa-2x"></i>
+            <div class="stat-value">{{ total_doctors }}</div>
+            <div class="stat-label">Total Doctors</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card orange">
+            <i class="fas fa-calendar-alt fa-2x"></i>
+            <div class="stat-value">{{ total_appointments }}</div>
+            <div class="stat-label">Total Appointments</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card purple">
+            <i class="fas fa-clock fa-2x"></i>
+            <div class="stat-value">{{ pending_appointments }}</div>
+            <div class="stat-label">Pending</div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Completed</h6>
+                <h3 class="text-success">{{ completed_appointments }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Cancelled</h6>
+                <h3 class="text-danger">{{ cancelled_appointments }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Completion Rate</h6>
+                <h3 class="text-info">
+                    {% if total_appointments > 0 %}
+                        {{ completed_appointments|add:pending_appointments|mul:100|div:total_appointments|floatformat:1 }}%
+                    {% else %}
+                        0%
+                    {% endif %}
+                </h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-calendar-alt"></i> Today's Appointments
+    </div>
+    <div class="card-body">
+        {% if todays_appointments %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Time</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for apt in todays_appointments %}
+                            <tr>
+                                <td>{{ apt.patient.first_name }} {{ apt.patient.last_name }}</td>
+                                <td>Dr. {{ apt.doctor.first_name }} {{ apt.doctor.last_name }}</td>
+                                <td>{{ apt.appointment_time }}</td>
+                                <td>{{ apt.reason|default:'-' }}</td>
+                                <td><span class="badge badge-{{ apt.status }}">{{ apt.get_status_display }}</span></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted text-center py-4">No appointments scheduled for today</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

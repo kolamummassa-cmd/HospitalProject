@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Doctor - HMS{% endblock %}
+
+{% block content %}
+<h1 class="mb-4"><i class="fas fa-stethoscope"></i> {{ action }} Doctor</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <h5 class="mb-3">Personal Information</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="first_name" class="form-label">First Name *</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" value="{{ doctor.first_name|default:'' }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="last_name" class="form-label">Last Name *</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" value="{{ doctor.last_name|default:'' }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="specialization" class="form-label">Specialization *</label>
+                            <input type="text" class="form-control" id="specialization" name="specialization" value="{{ doctor.specialization|default:'' }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="license_number" class="form-label">License Number *</label>
+                            <input type="text" class="form-control" id="license_number" name="license_number" value="{{ doctor.license_number|default:'' }}" required>
+                        </div>
+                    </div>
+                    
+                    <h5 class="mb-3 mt-4">Contact Information</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="contact" class="form-label">Phone *</label>
+                            <input type="tel" class="form-control" id="contact" name="contact" value="{{ doctor.contact|default:'' }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ doctor.email|default:'' }}">
+                        </div>
+                    </div>
+                    
+                    <h5 class="mb-3 mt-4">Professional Details</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="consultation_fee" class="form-label">Consultation Fee ($)</label>
+                            <input type="number" class="form-control" id="consultation_fee" name="consultation_fee" step="0.01" value="{{ doctor.consultation_fee|default:0 }}">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="availability" class="form-label">Availability</label>
+                        <textarea class="form-control" id="availability" name="availability" rows="2" placeholder="e.g., Monday-Friday 9AM-5PM">{{ doctor.availability|default:'' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="bio" class="form-label">Bio</label>
+                        <textarea class="form-control" id="bio" name="bio" rows="3">{{ doctor.bio|default:'' }}</textarea>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save
+                        </button>
+                        <a href="{% url 'doctors:doctor_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

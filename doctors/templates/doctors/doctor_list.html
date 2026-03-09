@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}Doctors - HMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-stethoscope"></i> Doctors</h1>
+    <a href="{% url 'doctors:doctor_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Add Doctor
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="get" class="mb-4">
+            <div class="input-group">
+                <input type="text" class="form-control" name="search" placeholder="Search by name or specialization..." value="{{ search_query }}">
+                <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i> Search</button>
+            </div>
+        </form>
+        
+        {% if doctors %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Specialization</th>
+                            <th>License</th>
+                            <th>Contact</th>
+                            <th>Fee</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doctor in doctors %}
+                            <tr>
+                                <td><strong>Dr. {{ doctor.first_name }} {{ doctor.last_name }}</strong></td>
+                                <td>{{ doctor.specialization }}</td>
+                                <td>{{ doctor.license_number }}</td>
+                                <td>{{ doctor.contact }}</td>
+                                <td>${{ doctor.consultation_fee }}</td>
+                                <td>
+                                    {% if doctor.is_available %}
+                                        <span class="badge bg-success">Available</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Unavailable</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'doctors:doctor_edit' doctor.id %}" class="btn btn-sm btn-warning" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'doctors:doctor_delete' doctor.id %}" class="btn btn-sm btn-danger" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted text-center py-5">No doctors found</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

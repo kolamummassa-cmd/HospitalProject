@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}Appointment - HMS{% endblock %}
+
+{% block content %}
+<h1 class="mb-4"><i class="fas fa-calendar-alt"></i> {% if appointment %}Edit{% else %}New{% endif %} Appointment</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="patient_id" class="form-label">Patient *</label>
+                            <select class="form-select" id="patient_id" name="patient_id" required>
+                                <option value="">Select Patient</option>
+                                {% for patient in patients %}
+                                    <option value="{{ patient.id }}" {% if appointment.patient.id == patient.id %}selected{% endif %}>
+                                        {{ patient.first_name }} {{ patient.last_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="doctor_id" class="form-label">Doctor *</label>
+                            <select class="form-select" id="doctor_id" name="doctor_id" required>
+                                <option value="">Select Doctor</option>
+                                {% for doctor in doctors %}
+                                    <option value="{{ doctor.id }}" {% if appointment.doctor.id == doctor.id %}selected{% endif %}>
+                                        Dr. {{ doctor.first_name }} {{ doctor.last_name }} ({{ doctor.specialization }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="appointment_date" class="form-label">Date *</label>
+                            <input type="date" class="form-control" id="appointment_date" name="appointment_date" value="{{ appointment.appointment_date|date:'Y-m-d'|default:'' }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="appointment_time" class="form-label">Time *</label>
+                            <input type="time" class="form-control" id="appointment_time" name="appointment_time" value="{{ appointment.appointment_time|default:'' }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="reason" class="form-label">Reason for Visit</label>
+                        <input type="text" class="form-control" id="reason" name="reason" value="{{ appointment.reason|default:'' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3">{{ appointment.notes|default:'' }}</textarea>
+                    </div>
+                    
+                    {% if appointment %}
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="pending" {% if appointment.status == 'pending' %}selected{% endif %}>Pending</option>
+                                <option value="completed" {% if appointment.status == 'completed' %}selected{% endif %}>Completed</option>
+                                <option value="cancelled" {% if appointment.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save
+                        </button>
+                        <a href="{% url 'appointments:appointment_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

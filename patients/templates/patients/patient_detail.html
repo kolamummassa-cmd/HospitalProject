@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% block title %}{{ patient }} - HMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-user"></i> {{ patient.first_name }} {{ patient.last_name }}</h1>
+    <div>
+        <a href="{% url 'patients:patient_edit' patient.id %}" class="btn btn-warning">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="{% url 'patients:patient_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header">Personal Information</div>
+            <div class="card-body">
+                <p><strong>Age:</strong> {{ patient.age }} years</p>
+                <p><strong>Gender:</strong> {{ patient.get_gender_display }}</p>
+                <p><strong>Date of Birth:</strong> {{ patient.date_of_birth }}</p>
+                <p><strong>Blood Type:</strong> {{ patient.blood_type|default:'-' }}</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">Contact Information</div>
+            <div class="card-body">
+                <p><strong>Phone:</strong> {{ patient.contact }}</p>
+                <p><strong>Email:</strong> {{ patient.email|default:'-' }}</p>
+                <p><strong>Address:</strong> {{ patient.address }}</p>
+                <p><strong>City:</strong> {{ patient.city }}, {{ patient.state }} {{ patient.zip_code }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header">Emergency Contact</div>
+            <div class="card-body">
+                <p><strong>Name:</strong> {{ patient.emergency_contact_name|default:'-' }}</p>
+                <p><strong>Phone:</strong> {{ patient.emergency_contact|default:'-' }}</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">Medical Information</div>
+            <div class="card-body">
+                <p><strong>Medical History:</strong></p>
+                <p>{{ patient.medical_history|default:'-'|linebreaks }}</p>
+                <p><strong>Allergies:</strong></p>
+                <p>{{ patient.allergies|default:'-'|linebreaks }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">Appointments</div>
+    <div class="card-body">
+        {% if appointments %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Doctor</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for apt in appointments %}
+                            <tr>
+                                <td>Dr. {{ apt.doctor.first_name }} {{ apt.doctor.last_name }}</td>
+                                <td>{{ apt.appointment_date }}</td>
+                                <td>{{ apt.appointment_time }}</td>
+                                <td>{{ apt.reason|default:'-' }}</td>
+                                <td><span class="badge badge-{{ apt.status }}">{{ apt.get_status_display }}</span></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted">No appointments</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">Visit History</div>
+    <div class="card-body">
+        {% if visit_history %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Doctor</th>
+                            <th>Date</th>
+                            <th>Diagnosis</th>
+                            <th>Treatment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for visit in visit_history %}
+                            <tr>
+                                <td>Dr. {{ visit.doctor.first_name }} {{ visit.doctor.last_name }}</td>
+                                <td>{{ visit.visit_date|date:'Y-m-d H:i' }}</td>
+                                <td>{{ visit.diagnosis|default:'-'|truncatewords:10 }}</td>
+                                <td>{{ visit.treatment|default:'-'|truncatewords:10 }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted">No visit history</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

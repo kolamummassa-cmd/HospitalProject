@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Delete Doctor - HMS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card border-danger">
+            <div class="card-body text-center">
+                <i class="fas fa-exclamation-triangle text-danger fa-3x mb-3"></i>
+                <h4 class="card-title">Delete Doctor?</h4>
+                <p class="card-text">Are you sure you want to delete <strong>Dr. {{ doctor.first_name }} {{ doctor.last_name }}</strong>?</p>
+                <p class="text-muted">This action cannot be undone.</p>
+                
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                    <a href="{% url 'doctors:doctor_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

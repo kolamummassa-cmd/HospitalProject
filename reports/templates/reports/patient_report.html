@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Patient Report - HMS{% endblock %}
+
+{% block content %}
+<h1 class="mb-4"><i class="fas fa-chart-bar"></i> Patient Report</h1>
+
+<div class="card mb-4">
+    <div class="card-body text-center">
+        <h6 class="text-muted">Total Patients</h6>
+        <h3 class="text-primary">{{ total_patients }}</h3>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-list"></i> Patient List
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Age</th>
+                        <th>Gender</th>
+                        <th>Contact</th>
+                        <th>City</th>
+                        <th>Blood Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for patient in patients %}
+                        <tr>
+                            <td>{{ patient.first_name }} {{ patient.last_name }}</td>
+                            <td>{{ patient.age }}</td>
+                            <td>{{ patient.get_gender_display }}</td>
+                            <td>{{ patient.contact }}</td>
+                            <td>{{ patient.city }}</td>
+                            <td>{{ patient.blood_type|default:'-' }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
