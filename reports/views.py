@@ -5,8 +5,12 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.db.models import Count
-from core.models import Patient, Doctor, Appointment, VisitHistory
+
 from core.views import check_role
+from patients.models import Patient
+from doctors.models import Doctor
+from appointments.models import Appointment
+from core.models import VisitHistory
 
 
 @login_required

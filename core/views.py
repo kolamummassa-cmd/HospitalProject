@@ -5,11 +5,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.views.decorators.http import require_http_methods
-from django.db.models import Count, Q
+
 from django.utils import timezone
-from datetime import timedelta
-from .models import UserProfile, Patient, Doctor, Appointment, VisitHistory
+from functools import wraps
+
+from .models import UserProfile, VisitHistory
+from patients.models import Patient
+from doctors.models import Doctor
+from appointments.models import Appointment
 
 
 def login_view(request):
@@ -156,7 +159,7 @@ def dashboard(request):
                 'patient': patient,
                 'upcoming_appointments': patient.appointments.filter(
                     appointment_date__gte=timezone.now().date(),
-                    status__in=['pending', 'completed']
+                    status__in=['pending', 'confirmed', 'scheduled']
                 ).select_related('doctor')[:5],
                 'recent_visits': VisitHistory.objects.filter(patient=patient)[:5],
             })
@@ -196,6 +199,7 @@ def check_role(role):
     """Decorator to check user role"""
 
     def decorator(view_func):
+        @wraps(view_func)
         def wrapper(request, *args, **kwargs):
             if not request.user.is_authenticated:
                 return redirect('core:login')

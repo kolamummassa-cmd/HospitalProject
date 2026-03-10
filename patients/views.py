@@ -5,8 +5,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
-from core.models import Patient, UserProfile
+
 from core.views import check_role
+from .models import Patient
+from core.models import UserProfile
 
 
 @login_required

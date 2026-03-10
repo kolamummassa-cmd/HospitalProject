@@ -3,9 +3,9 @@ from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
 from datetime import datetime
 
-from appointments.models import Appointment
-from doctors.models import Doctor
-from patients.models import Patient
+# from appointments.models import Appointment
+# from doctors.models import Doctor
+# from patients.models import Patient
 
 
 class UserProfile(models.Model):
@@ -38,8 +38,8 @@ class UserProfile(models.Model):
 
 
 class VisitHistory(models.Model):
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
-    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+    patient = models.ForeignKey("patients.Patient", on_delete=models.CASCADE)
+    doctor = models.ForeignKey('doctors.Doctor', on_delete=models.CASCADE)
     visit_date = models.DateTimeField(auto_now_add=True)
     notes = models.TextField(blank=True)
 

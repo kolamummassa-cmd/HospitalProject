@@ -6,27 +6,41 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Q
-from core.models import Appointment, Patient, Doctor, VisitHistory
+from .models import Appointment
+from patients.models import Patient
+from doctors.models import Doctor
+from core.models import VisitHistory
 from core.views import check_role
 
 
 @login_required
 def appointment_list(request):
     """List appointments based on role"""
+
     user_profile = request.user.profile
 
-    if user_profile.role == 'receptionist' or user_profile.role == 'admin':
+    if user_profile.role in ['receptionist', 'admin']:
         appointments = Appointment.objects.all()
+
+
     elif user_profile.role == 'doctor':
-        doctor = request.user.doctor_profile
-        appointments = doctor.appointments.all()
+
+        doctor = Doctor.objects.filter(user=request.user).first()
+
+        appointments = doctor.appointments.all() if doctor else Appointment.objects.none()
+
     elif user_profile.role == 'patient':
-        patient = request.user.patient_profile
-        appointments = patient.appointments.all()
+        try:
+            patient = request.user.patient_profile
+            appointments = patient.appointments.all()
+        except:
+            appointments = Appointment.objects.none()
+
     else:
         appointments = Appointment.objects.none()
 
     search_query = request.GET.get('search', '')
+
     if search_query:
         appointments = appointments.filter(
             Q(patient__first_name__icontains=search_query) |
@@ -34,7 +48,11 @@ def appointment_list(request):
             Q(doctor__first_name__icontains=search_query)
         )
 
-    context = {'appointments': appointments.order_by('-appointment_date'), 'search_query': search_query}
+    context = {
+        'appointments': appointments.order_by('-appointment_date'),
+        'search_query': search_query
+    }
+
     return render(request, 'appointments/appointment_list.html', context)
 
 
