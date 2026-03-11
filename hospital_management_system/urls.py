@@ -24,7 +24,7 @@ from core import views as core_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', lambda request: redirect('core:login')),
+    # path('', lambda request: redirect('core:login')),
     path('', include('core.urls')),        # ← was 'core/', change to ''
     path('patients/', include('patients.urls')),
     path('doctors/', include('doctors.urls')),

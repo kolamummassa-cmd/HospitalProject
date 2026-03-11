@@ -58,7 +58,7 @@
                 <h6 class="text-muted">Completion Rate</h6>
                 <h3 class="text-info">
                     {% if total_appointments > 0 %}
-                        {{ completed_appointments|add:pending_appointments|mul:100|div:total_appointments|floatformat:1 }}%
+                    {{ completion_rate }}%
                     {% else %}
                         0%
                     {% endif %}

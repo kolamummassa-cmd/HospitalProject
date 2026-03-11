@@ -1,13 +1,12 @@
-from django.shortcuts import render
-
-# Create your views here.
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db.models import Q
-from .models import Doctor
+
 from core.models import UserProfile
 from core.views import check_role
+from .models import Doctor
 
 
 @login_required
@@ -29,21 +28,45 @@ def doctor_list(request):
 @login_required
 @check_role('admin')
 def doctor_create(request):
-    """Create new doctor"""
+    """Create new doctor with their own user account"""
     if request.method == 'POST':
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
-        email = request.POST.get('email')
+        email = request.POST.get('email', '')
         contact = request.POST.get('contact')
         specialization = request.POST.get('specialization')
         license_number = request.POST.get('license_number')
         consultation_fee = request.POST.get('consultation_fee', 0)
         bio = request.POST.get('bio')
         availability = request.POST.get('availability')
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        # Validate username and password provided
+        if not username or not password:
+            messages.error(request, 'Username and password are required.')
+            return render(request, 'doctors/doctor_form.html', {'action': 'Create'})
+
+        # Check username not already taken
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'Username already exists. Please choose another.')
+            return render(request, 'doctors/doctor_form.html', {'action': 'Create'})
 
         try:
+            # Create a user account for the doctor
+            new_user = User.objects.create_user(
+                username=username,
+                email=email or '',
+                password=password,
+                first_name=first_name,
+                last_name=last_name
+            )
+            # Create their profile with doctor role
+            UserProfile.objects.create(user=new_user, role='doctor')
+
+            # Create the doctor record linked to their own user
             doctor = Doctor.objects.create(
-                user=request.user,
+                user=new_user,
                 first_name=first_name,
                 last_name=last_name,
                 email=email,
@@ -54,18 +77,25 @@ def doctor_create(request):
                 bio=bio,
                 availability=availability,
             )
-            messages.success(request, f'Doctor {doctor} created successfully!')
+            messages.success(request, f'Doctor {doctor} created successfully! '
+                                       f'Login: {username} / {password}')
             return redirect('doctors:doctor_list')
+
         except Exception as e:
-            messages.error(request, f'Error: {str(e)}')
+            # Clean up user if doctor creation failed
+            if 'new_user' in locals():
+                new_user.delete()
+            messages.error(request, f'Error creating doctor: {str(e)}')
+
     return render(request, 'doctors/doctor_form.html', {'action': 'Create'})
 
 
 @login_required
 @check_role('admin')
 def doctor_edit(request, pk):
-    """Edit doctor"""
+    """Edit doctor details"""
     doctor = get_object_or_404(Doctor, pk=pk)
+
     if request.method == 'POST':
         doctor.first_name = request.POST.get('first_name', doctor.first_name)
         doctor.last_name = request.POST.get('last_name', doctor.last_name)
@@ -75,12 +105,21 @@ def doctor_edit(request, pk):
         doctor.consultation_fee = request.POST.get('consultation_fee', doctor.consultation_fee)
         doctor.bio = request.POST.get('bio', doctor.bio)
         doctor.availability = request.POST.get('availability', doctor.availability)
+        doctor.is_available = request.POST.get('is_available') == 'on'
+
+        # Update linked user name and email too
+        doctor.user.first_name = doctor.first_name
+        doctor.user.last_name = doctor.last_name
+        doctor.user.email = doctor.email or ''
+
         try:
             doctor.save()
+            doctor.user.save()
             messages.success(request, f'Doctor {doctor} updated successfully!')
             return redirect('doctors:doctor_list')
         except Exception as e:
-            messages.error(request, f'Error: {str(e)}')
+            messages.error(request, f'Error updating doctor: {str(e)}')
+
     context = {'doctor': doctor, 'action': 'Edit'}
     return render(request, 'doctors/doctor_form.html', context)
 
@@ -88,14 +127,14 @@ def doctor_edit(request, pk):
 @login_required
 @check_role('admin')
 def doctor_delete(request, pk):
-    """Delete doctor"""
+    """Delete doctor and their user account"""
     doctor = get_object_or_404(Doctor, pk=pk)
+
     if request.method == 'POST':
         doctor_name = str(doctor)
-        doctor.delete()
+        # Deleting the user will cascade and delete the doctor record too
+        doctor.user.delete()
         messages.success(request, f'Doctor {doctor_name} deleted successfully!')
         return redirect('doctors:doctor_list')
+
     return render(request, 'doctors/doctor_confirm_delete.html', {'doctor': doctor})
-
-
-

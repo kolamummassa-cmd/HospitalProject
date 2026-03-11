@@ -1,4 +1,7 @@
-from django.shortcuts import render
+
+from django.contrib import messages
+
+from datetime import timedelta
 
 # Create your views here.
 from django.shortcuts import render, redirect, get_object_or_404
@@ -9,7 +12,8 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from functools import wraps
 
-from .models import UserProfile, VisitHistory
+from .models import UserProfile
+from patients.models import VisitHistory
 from patients.models import Patient
 from doctors.models import Doctor
 from appointments.models import Appointment
@@ -75,13 +79,13 @@ def register_view(request):
                 user=user,
                 first_name=first_name,
                 last_name=last_name,
-                date_of_birth='2000-01-01',
-                gender='male',
+                date_of_birth='',
+                gender='',
                 contact='',
                 address='',
-                city='',
-                state='',
-                zip_code=''
+                county=''
+
+
             )
 
         # Auto-login
@@ -123,33 +127,124 @@ def dashboard(request):
         ).select_related('patient', 'doctor')[:10]
 
     elif role == 'doctor':
-        # Doctor dashboard
+
         try:
+
+
+
             doctor = request.user.doctor_profile
+
+            today = timezone.now().date()
+
+            next_week = today + timedelta(days=7)
+
+            # All doctor's appointments
+
+            all_apts = doctor.appointments.all()
+
+            total_completed = all_apts.filter(status='completed').count()
+
+            total_all = all_apts.count()
+
+            # Completion rate
+
+            completion_rate = round((total_completed / total_all * 100), 1) if total_all > 0 else 0
+
+            # Today's appointments ordered by time
+
+            todays_apts = all_apts.filter(
+
+                appointment_date=today
+
+            ).select_related('patient').order_by('appointment_time')
+
+            # Upcoming next 7 days (excluding today)
+
+            upcoming_week = all_apts.filter(
+
+                appointment_date__gt=today,
+
+                appointment_date__lte=next_week
+
+            ).select_related('patient').order_by('appointment_date', 'appointment_time')
+
+            # My unique patients
+
+
+
+            patient_ids = all_apts.values_list('patient_id', flat=True).distinct()
+
+            my_patients = Patient.objects.filter(id__in=patient_ids)[:8]
+
             context.update({
+
                 'doctor': doctor,
-                'todays_appointments': doctor.appointments.filter(
-                    appointment_date=timezone.now().date()
-                ).select_related('patient'),
-                'pending_appointments': doctor.appointments.filter(status='pending').count(),
-                'total_patients': doctor.appointments.values('patient').distinct().count(),
+
+                'todays_appointments': todays_apts,
+
+                'pending_appointments': all_apts.filter(status='pending').count(),
+
+                'total_patients': patient_ids.count(),
+
+                'total_completed': total_completed,
+
+                'completion_rate': completion_rate,
+
+                'upcoming_week': upcoming_week,
+
+                'my_patients': my_patients,
+
             })
-        except Doctor.DoesNotExist:
+
+        except Exception:
+
             pass
 
     elif role == 'receptionist':
-        # Receptionist dashboard
-        context.update({
-            'total_patients': Patient.objects.count(),
-            'total_doctors': Doctor.objects.count(),
-            'total_appointments': Appointment.objects.count(),
-            'pending_appointments': Appointment.objects.filter(status='pending').count(),
-        })
 
         today = timezone.now().date()
-        context['todays_appointments'] = Appointment.objects.filter(
+
+        todays_apts = Appointment.objects.filter(
+
             appointment_date=today
-        ).select_related('patient', 'doctor')[:10]
+
+        ).select_related('patient', 'doctor').order_by('appointment_time')
+
+        context.update({
+
+            'total_patients': Patient.objects.count(),
+
+            'total_doctors': Doctor.objects.count(),
+
+            'total_appointments': Appointment.objects.count(),
+
+            'pending_appointments': Appointment.objects.filter(status='pending').count(),
+
+            # Today's queue ordered by time
+
+            'todays_appointments': todays_apts,
+
+            # Confirmed appointments today
+
+            'todays_confirmed': todays_apts.filter(status='confirmed').count(),
+
+            # Cancelled appointments today - for alert banner
+
+            'todays_cancelled': todays_apts.filter(status='cancelled').count(),
+
+            # Pending appointments needing confirmation
+
+            'pending_confirmation': Appointment.objects.filter(
+
+                status='pending'
+
+            ).select_related('patient', 'doctor').order_by('appointment_date', 'appointment_time')[:10],
+
+            # Recently registered patients
+
+            'recent_patients': Patient.objects.order_by('-created_at')[:5],
+
+    })
 
     elif role == 'patient':
         # Patient dashboard
@@ -213,3 +308,55 @@ def check_role(role):
 
 
 
+@login_required
+@check_role('admin')
+def staff_list(request):
+    """List all staff - doctors and receptionists"""
+    staff = UserProfile.objects.filter(
+        role__in=['doctor', 'receptionist']
+    ).select_related('user')
+    return render(request, 'core/staff_list.html', {'staff': staff})
+
+
+@login_required
+@check_role('admin')
+def staff_create(request):
+    """Admin creates a receptionist or doctor account"""
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        role = request.POST.get('role')  # 'receptionist' or 'doctor'
+
+        try:
+            if User.objects.filter(username=username).exists():
+                messages.error(request, 'Username already exists')
+            else:
+                new_user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    first_name=first_name,
+                    last_name=last_name
+                )
+                UserProfile.objects.create(user=new_user, role=role)
+                messages.success(request, f'{role.title()} account created successfully!')
+                return redirect('core:staff_list')
+        except Exception as e:
+            messages.error(request, f'Error: {str(e)}')
+
+    return render(request, 'core/staff_form.html')
+
+
+@login_required
+@check_role('admin')
+def staff_delete(request, pk):
+    """Delete a staff account"""
+    profile = get_object_or_404(UserProfile, pk=pk)
+    if request.method == 'POST':
+        profile.user.delete()
+        messages.success(request, 'Staff account deleted successfully!')
+        return redirect('core:staff_list')
+    return render(request, 'core/staff_confirm_delete.html', {'profile': profile})

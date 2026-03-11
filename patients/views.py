@@ -9,6 +9,7 @@ from django.db.models import Q
 from core.views import check_role
 from .models import Patient
 from core.models import UserProfile
+from django.contrib.auth.models import User
 
 
 @login_required
@@ -41,7 +42,7 @@ def patient_create(request):
     if request.method == 'POST':
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
-        email = request.POST.get('email')
+        email = request.POST.get('email', '')
         contact = request.POST.get('contact')
         date_of_birth = request.POST.get('date_of_birth')
         gender = request.POST.get('gender')
@@ -56,8 +57,19 @@ def patient_create(request):
         allergies = request.POST.get('allergies')
 
         try:
+            # Create a new user account for the patient
+            username = email if email else f"{first_name.lower()}{last_name.lower()}"
+            new_user = User.objects.create_user(
+                username=username,
+                email=email or '',
+                password='changeme123',
+                first_name=first_name,
+                last_name=last_name
+            )
+            UserProfile.objects.create(user=new_user, role='patient')
+
             patient = Patient.objects.create(
-                user=request.user,
+                user=new_user,        # ← new user, not request.user
                 first_name=first_name,
                 last_name=last_name,
                 email=email,
@@ -80,7 +92,6 @@ def patient_create(request):
             messages.error(request, f'Error creating patient: {str(e)}')
 
     return render(request, 'patients/patient_form.html', {'action': 'Create'})
-
 
 @login_required
 @check_role('receptionist')
@@ -117,7 +128,6 @@ def patient_edit(request, pk):
         'action': 'Edit',
     }
     return render(request, 'patients/patient_form.html', context)
-
 
 @login_required
 @check_role('receptionist')

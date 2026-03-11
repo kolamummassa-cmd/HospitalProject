@@ -4,13 +4,13 @@ from django.shortcuts import render
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from django.db.models import Count
+
 
 from core.views import check_role
 from patients.models import Patient
 from doctors.models import Doctor
 from appointments.models import Appointment
-from core.models import VisitHistory
+
 
 
 @login_required
@@ -30,6 +30,9 @@ def dashboard_report(request):
     context['todays_appointments'] = Appointment.objects.filter(
         appointment_date=today
     ).select_related('patient', 'doctor')
+    total = Appointment.objects.count()
+    completed = Appointment.objects.filter(status='completed').count()
+    context['completion_rate'] = round((completed / total * 100), 1) if total > 0 else 0
 
     return render(request, 'reports/dashboard_report.html', context)
 

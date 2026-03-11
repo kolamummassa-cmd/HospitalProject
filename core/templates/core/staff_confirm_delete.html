@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Delete Staff - HMS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card border-danger">
+            <div class="card-body text-center">
+                <i class="fas fa-exclamation-triangle text-danger fa-3x mb-3"></i>
+                <h4 class="card-title">Delete Staff Account?</h4>
+                <p class="card-text">Are you sure you want to delete <strong>{{ profile.user.get_full_name }}</strong>?</p>
+                <p class="text-muted">Role: {{ profile.get_role_display }}</p>
+                <p class="text-danger"><small>This action cannot be undone and will delete their login access.</small></p>
+
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                    <a href="{% url 'core:staff_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

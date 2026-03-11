@@ -2,45 +2,81 @@
 {% block title %}Dashboard - HMS{% endblock %}
 
 {% block content %}
-<h1 class="mb-4">
-    <i class="fas fa-tachometer-alt"></i> Dashboard
-</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
+    {% if role == 'admin' %}
+    <div class="d-flex gap-2">
+        <a href="{% url 'patients:patient_create' %}" class="btn btn-primary">
+            <i class="fas fa-user-plus"></i> Add Patient
+        </a>
+        <a href="{% url 'doctors:doctor_create' %}" class="btn btn-success">
+            <i class="fas fa-user-md"></i> Add Doctor
+        </a>
+        <a href="{% url 'core:staff_create' %}" class="btn btn-secondary">
+            <i class="fas fa-user-tie"></i> Add Receptionist
+        </a>
+        <a href="{% url 'appointments:appointment_create' %}" class="btn btn-warning">
+            <i class="fas fa-calendar-plus"></i> New Appointment
+        </a>
+    </div>
+    {% endif %}
+</div>
 
 {% if role == 'admin' %}
+
+    {# ── Row 1: 6 stat cards ── #}
     <div class="row mb-4">
-        <div class="col-md-3 mb-3">
+        <div class="col-md-2 mb-3">
             <div class="stat-card blue">
                 <i class="fas fa-users fa-2x"></i>
                 <div class="stat-value">{{ total_patients }}</div>
                 <div class="stat-label">Total Patients</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
+        <div class="col-md-2 mb-3">
             <div class="stat-card green">
                 <i class="fas fa-stethoscope fa-2x"></i>
                 <div class="stat-value">{{ total_doctors }}</div>
                 <div class="stat-label">Total Doctors</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
+        <div class="col-md-2 mb-3">
             <div class="stat-card orange">
                 <i class="fas fa-calendar-alt fa-2x"></i>
                 <div class="stat-value">{{ total_appointments }}</div>
                 <div class="stat-label">Total Appointments</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
+        <div class="col-md-2 mb-3">
             <div class="stat-card purple">
                 <i class="fas fa-clock fa-2x"></i>
                 <div class="stat-value">{{ pending_appointments }}</div>
                 <div class="stat-label">Pending</div>
             </div>
         </div>
+        <div class="col-md-2 mb-3">
+            <div class="stat-card green">
+                <i class="fas fa-check-circle fa-2x"></i>
+                <div class="stat-value">{{ completed_appointments }}</div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="stat-card red">
+                <i class="fas fa-times-circle fa-2x"></i>
+                <div class="stat-value">{{ cancelled_appointments }}</div>
+                <div class="stat-label">Cancelled</div>
+            </div>
+        </div>
     </div>
-    
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-calendar-alt"></i> Today's Appointments
+
+    {# ── Today's Appointments ── #}
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-calendar-alt"></i> Today's Appointments</span>
+            <a href="{% url 'appointments:appointment_list' %}" class="btn btn-sm btn-outline-primary">
+                View All
+            </a>
         </div>
         <div class="card-body">
             {% if todays_appointments %}
@@ -53,6 +89,7 @@
                                 <th>Time</th>
                                 <th>Reason</th>
                                 <th>Status</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -65,144 +102,11 @@
                                     <td>
                                         <span class="badge badge-{{ apt.status }}">{{ apt.get_status_display }}</span>
                                     </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% else %}
-                <p class="text-muted text-center py-4">No appointments scheduled for today</p>
-            {% endif %}
-        </div>
-    </div>
-
-{% elif role == 'doctor' %}
-    <div class="row mb-4">
-        <div class="col-md-4 mb-3">
-            <div class="stat-card blue">
-                <i class="fas fa-calendar-alt fa-2x"></i>
-                <div class="stat-value">{{ todays_appointments|length }}</div>
-                <div class="stat-label">Today's Appointments</div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="stat-card green">
-                <i class="fas fa-users fa-2x"></i>
-                <div class="stat-value">{{ total_patients }}</div>
-                <div class="stat-label">Total Patients</div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="stat-card orange">
-                <i class="fas fa-clock fa-2x"></i>
-                <div class="stat-value">{{ pending_appointments }}</div>
-                <div class="stat-label">Pending</div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-calendar-alt"></i> Today's Appointments
-        </div>
-        <div class="card-body">
-            {% if todays_appointments %}
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Patient</th>
-                                <th>Time</th>
-                                <th>Reason</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for apt in todays_appointments %}
-                                <tr>
-                                    <td>{{ apt.patient.first_name }} {{ apt.patient.last_name }}</td>
-                                    <td>{{ apt.appointment_time }}</td>
-                                    <td>{{ apt.reason|default:'-' }}</td>
                                     <td>
-                                        <span class="badge badge-{{ apt.status }}">{{ apt.get_status_display }}</span>
-                                    </td>
-                                    <td>
-                                        <a href="{% url 'core:appointment_detail' apt.id %}" class="btn btn-sm btn-info">
+                                        <a href="{% url 'appointments:appointment_detail' apt.id %}" class="btn btn-sm btn-info" title="View">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% else %}
-                <p class="text-muted text-center py-4">No appointments scheduled for today</p>
-            {% endif %}
-        </div>
-    </div>
-
-{% elif role == 'receptionist' %}
-    <div class="row mb-4">
-        <div class="col-md-3 mb-3">
-            <div class="stat-card blue">
-                <i class="fas fa-users fa-2x"></i>
-                <div class="stat-value">{{ total_patients }}</div>
-                <div class="stat-label">Total Patients</div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="stat-card green">
-                <i class="fas fa-stethoscope fa-2x"></i>
-                <div class="stat-value">{{ total_doctors }}</div>
-                <div class="stat-label">Total Doctors</div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="stat-card orange">
-                <i class="fas fa-calendar-alt fa-2x"></i>
-                <div class="stat-value">{{ total_appointments }}</div>
-                <div class="stat-label">Total Appointments</div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="stat-card purple">
-                <i class="fas fa-clock fa-2x"></i>
-                <div class="stat-value">{{ pending_appointments }}</div>
-                <div class="stat-label">Pending</div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-calendar-alt"></i> Today's Appointments
-        </div>
-        <div class="card-body">
-            {% if todays_appointments %}
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Patient</th>
-                                <th>Doctor</th>
-                                <th>Time</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for apt in todays_appointments %}
-                                <tr>
-                                    <td>{{ apt.patient.first_name }} {{ apt.patient.last_name }}</td>
-                                    <td>Dr. {{ apt.doctor.first_name }} {{ apt.doctor.last_name }}</td>
-                                    <td>{{ apt.appointment_time }}</td>
-                                    <td>
-                                        <span class="badge badge-{{ apt.status }}">{{ apt.get_status_display }}</span>
-                                    </td>
-                                    <td>
-                                        <a href="{% url 'core:appointment_edit' apt.id %}" class="btn btn-sm btn-warning">
+                                        <a href="{% url 'appointments:appointment_edit' apt.id %}" class="btn btn-sm btn-warning" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                     </td>
@@ -212,9 +116,573 @@
                     </table>
                 </div>
             {% else %}
-                <p class="text-muted text-center py-4">No appointments scheduled for today</p>
+                <p class="text-muted text-center py-4">
+                    <i class="fas fa-calendar-times fa-2x mb-2 d-block"></i>
+                    No appointments scheduled for today
+                </p>
             {% endif %}
         </div>
+    </div>
+
+    {# ── Recent Patients + Quick Links ── #}
+    <div class="row">
+        <div class="col-md-8 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-users"></i> Recently Registered Patients</span>
+                    <a href="{% url 'patients:patient_list' %}" class="btn btn-sm btn-outline-primary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_patients %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Gender</th>
+                                        <th>Contact</th>
+                                        <th>City</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for patient in recent_patients %}
+                                        <tr>
+                                            <td><strong>{{ patient.first_name }} {{ patient.last_name }}</strong></td>
+                                            <td>{{ patient.get_gender_display }}</td>
+                                            <td>{{ patient.contact }}</td>
+                                            <td>{{ patient.city }}</td>
+                                            <td>
+                                                <a href="{% url 'patients:patient_detail' patient.id %}" class="btn btn-sm btn-info">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-4">No patients registered yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-bolt"></i> Quick Actions
+                </div>
+                <div class="card-body d-flex flex-column gap-2">
+                    <a href="{% url 'patients:patient_create' %}" class="btn btn-primary w-100">
+                        <i class="fas fa-user-plus"></i> Register New Patient
+                    </a>
+                    <a href="{% url 'doctors:doctor_create' %}" class="btn btn-success w-100">
+                        <i class="fas fa-user-md"></i> Add New Doctor
+                    </a>
+                    <a href="{% url 'core:staff_create' %}" class="btn btn-secondary w-100">
+                        <i class="fas fa-user-tie"></i> Add Receptionist
+                    </a>
+                    <a href="{% url 'appointments:appointment_create' %}" class="btn btn-warning w-100">
+                        <i class="fas fa-calendar-plus"></i> Book Appointment
+                    </a>
+                    <a href="{% url 'patients:patient_list' %}" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-users"></i> View All Patients
+                    </a>
+                    <a href="{% url 'doctors:doctor_list' %}" class="btn btn-outline-success w-100">
+                        <i class="fas fa-stethoscope"></i> View All Doctors
+                    </a>
+                    <a href="{% url 'core:staff_list' %}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-user-tie"></i> View All Staff
+                    </a>
+                    <a href="{% url 'reports:dashboard_report' %}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-chart-bar"></i> View Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% elif role == 'doctor' %}
+
+    {# ── Pending Alert Banner ── #}
+    {% if pending_appointments %}
+    <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+        <i class="fas fa-bell fa-lg me-3"></i>
+        <div>
+            <strong>{{ pending_appointments }} appointment{{ pending_appointments|pluralize }} still pending.</strong>
+            Please review and update their status.
+            <a href="{% url 'appointments:appointment_list' %}" class="alert-link ms-2">View All</a>
+        </div>
+    </div>
+    {% endif %}
+
+    {# ── Row 1: 6 Personal Stat Cards ── #}
+    <div class="row mb-4">
+        <div class="col-md-2 mb-3">
+            <div class="stat-card blue">
+                <i class="fas fa-calendar-alt fa-2x"></i>
+                <div class="stat-value">{{ todays_appointments|length }}</div>
+                <div class="stat-label">Today's Apts</div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="stat-card green">
+                <i class="fas fa-users fa-2x"></i>
+                <div class="stat-value">{{ total_patients }}</div>
+                <div class="stat-label">My Patients</div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="stat-card orange">
+                <i class="fas fa-clock fa-2x"></i>
+                <div class="stat-value">{{ pending_appointments }}</div>
+                <div class="stat-label">Pending</div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="stat-card green">
+                <i class="fas fa-check-circle fa-2x"></i>
+                <div class="stat-value">{{ total_completed }}</div>
+                <div class="stat-label">Total Completed</div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="stat-card blue">
+                <i class="fas fa-calendar-week fa-2x"></i>
+                <div class="stat-value">{{ upcoming_week|length }}</div>
+                <div class="stat-label">This Week</div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="stat-card purple">
+                <i class="fas fa-percentage fa-2x"></i>
+                <div class="stat-value">{{ completion_rate }}%</div>
+                <div class="stat-label">Completion Rate</div>
+            </div>
+        </div>
+    </div>
+
+    {# ── Today's Appointments + My Patients ── #}
+    <div class="row mb-4">
+
+        {# ── Today's Appointments ── #}
+        <div class="col-md-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-calendar-alt"></i> Today's Appointments
+                </div>
+                <div class="card-body">
+                    {% if todays_appointments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Patient</th>
+                                        <th>Time</th>
+                                        <th>Reason</th>
+                                        <th>Blood Type</th>
+                                        <th>Allergies</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for apt in todays_appointments %}
+                                        <tr>
+                                            <td>{{ forloop.counter }}</td>
+                                            <td><strong>{{ apt.patient.first_name }} {{ apt.patient.last_name }}</strong></td>
+                                            <td><strong>{{ apt.appointment_time }}</strong></td>
+                                            <td>{{ apt.reason|default:'-' }}</td>
+                                            <td>
+                                                <span class="badge bg-secondary">
+                                                    {{ apt.patient.blood_type|default:'N/A' }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <small class="text-danger">
+                                                    {{ apt.patient.allergies|default:'None'|truncatewords:3 }}
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-{{ apt.status }}">{{ apt.get_status_display }}</span>
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'appointments:appointment_detail' apt.id %}" class="btn btn-sm btn-info" title="View">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'appointments:appointment_edit' apt.id %}" class="btn btn-sm btn-success" title="Mark Complete">
+                                                    <i class="fas fa-check"></i>
+                                                </a>
+                                                <a href="{% url 'patients:patient_detail' apt.patient.id %}" class="btn btn-sm btn-secondary" title="Patient History">
+                                                    <i class="fas fa-file-medical"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-4">
+                            <i class="fas fa-calendar-times fa-2x mb-2 d-block"></i>
+                            No appointments scheduled for today
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# ── My Patients ── #}
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-users"></i> My Patients</span>
+                    <a href="{% url 'appointments:appointment_list' %}" class="btn btn-sm btn-outline-primary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    {% if my_patients %}
+                        <ul class="list-group list-group-flush">
+                            {% for patient in my_patients %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ patient.first_name }} {{ patient.last_name }}</strong>
+                                        <br>
+                                        <small class="text-muted">
+                                            {{ patient.blood_type|default:'Blood type N/A' }}
+                                            &bull; Age {{ patient.age }}
+                                        </small>
+                                    </div>
+                                    <a href="{% url 'patients:patient_detail' patient.id %}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-file-medical"></i>
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted text-center py-4">No patients yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    {# ── Upcoming 7 Days ── #}
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-calendar-week"></i> Upcoming Appointments — Next 7 Days</span>
+            <a href="{% url 'appointments:appointment_list' %}" class="btn btn-sm btn-outline-primary">
+                View All
+            </a>
+        </div>
+        <div class="card-body">
+            {% if upcoming_week %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for apt in upcoming_week %}
+                                <tr>
+                                    <td><strong>{{ apt.patient.first_name }} {{ apt.patient.last_name }}</strong></td>
+                                    <td>{{ apt.appointment_date }}</td>
+                                    <td>{{ apt.appointment_time }}</td>
+                                    <td>{{ apt.reason|default:'-' }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ apt.status }}">{{ apt.get_status_display }}</span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'appointments:appointment_detail' apt.id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted text-center py-4">No upcoming appointments this week</p>
+            {% endif %}
+        </div>
+    </div>
+
+    {# ── Write Diagnosis / Visit Record ── #}
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-notes-medical"></i> Record Visit / Write Diagnosis
+        </div>
+        <div class="card-body">
+            {% if todays_appointments %}
+                <p class="text-muted mb-3">Select a completed appointment to record diagnosis and treatment:</p>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Time</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Record Visit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for apt in todays_appointments %}
+                                <tr>
+                                    <td><strong>{{ apt.patient.first_name }} {{ apt.patient.last_name }}</strong></td>
+                                    <td>{{ apt.appointment_time }}</td>
+                                    <td>{{ apt.reason|default:'-' }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ apt.status }}">{{ apt.get_status_display }}</span>
+                                    </td>
+                                    <td>
+                                        {% if apt.status == 'completed' %}
+                                            <a href="{% url 'appointments:appointment_detail' apt.id %}" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-notes-medical"></i> Write Notes
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted small">Mark complete first</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted text-center py-4">No appointments today to record</p>
+            {% endif %}
+        </div>
+    </div>
+
+{% elif role == 'receptionist' %}
+
+    {# ── Cancelled Alert Banner ── #}
+    {% if todays_cancelled %}
+    <div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+        <i class="fas fa-exclamation-circle fa-lg me-3"></i>
+        <div>
+            <strong>{{ todays_cancelled }} appointment{{ todays_cancelled|pluralize }} cancelled today.</strong>
+            Please follow up with the affected patients.
+            <a href="{% url 'appointments:appointment_list' %}" class="alert-link ms-2">View All</a>
+        </div>
+    </div>
+    {% endif %}
+
+    {# ── Row 1: 6 stat cards ── #}
+    <div class="row mb-4">
+        <div class="col-md-2 mb-3">
+            <div class="stat-card blue">
+                <i class="fas fa-users fa-2x"></i>
+                <div class="stat-value">{{ total_patients }}</div>
+                <div class="stat-label">Total Patients</div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="stat-card green">
+                <i class="fas fa-stethoscope fa-2x"></i>
+                <div class="stat-value">{{ total_doctors }}</div>
+                <div class="stat-label">Total Doctors</div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="stat-card orange">
+                <i class="fas fa-calendar-alt fa-2x"></i>
+                <div class="stat-value">{{ total_appointments }}</div>
+                <div class="stat-label">Total Appointments</div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="stat-card purple">
+                <i class="fas fa-clock fa-2x"></i>
+                <div class="stat-value">{{ pending_appointments }}</div>
+                <div class="stat-label">Pending</div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="stat-card blue">
+                <i class="fas fa-calendar-check fa-2x"></i>
+                <div class="stat-value">{{ todays_appointments|length }}</div>
+                <div class="stat-label">Today's Apts</div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="stat-card green">
+                <i class="fas fa-check-circle fa-2x"></i>
+                <div class="stat-value">{{ todays_confirmed }}</div>
+                <div class="stat-label">Confirmed Today</div>
+            </div>
+        </div>
+    </div>
+
+    {# ── Patient Quick Search ── #}
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-search"></i> Patient Quick Search
+        </div>
+        <div class="card-body">
+            <form method="get" action="{% url 'patients:patient_list' %}">
+                <div class="input-group">
+                    <input type="text" class="form-control form-control-lg"
+                           name="search"
+                           placeholder="Search patient by name or phone number...">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    <a href="{% url 'patients:patient_create' %}" class="btn btn-success">
+                        <i class="fas fa-user-plus"></i> New Patient
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# ── Pending Appointments needing confirmation ── #}
+    {% if pending_confirmation %}
+    <div class="card mb-4 border-warning">
+        <div class="card-header bg-warning text-dark">
+            <i class="fas fa-exclamation-triangle"></i> Appointments Needing Confirmation
+            <span class="badge bg-dark ms-2">{{ pending_confirmation|length }}</span>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for apt in pending_confirmation %}
+                            <tr>
+                                <td>{{ apt.patient.first_name }} {{ apt.patient.last_name }}</td>
+                                <td>Dr. {{ apt.doctor.first_name }} {{ apt.doctor.last_name }}</td>
+                                <td>{{ apt.appointment_date }}</td>
+                                <td>{{ apt.appointment_time }}</td>
+                                <td>
+                                    <a href="{% url 'appointments:appointment_edit' apt.id %}" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-check"></i> Confirm
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# ── Today's Queue + Recent Patients ── #}
+    <div class="row mb-4">
+
+        {# Today's Queue ── #}
+        <div class="col-md-8 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-list-ol"></i> Today's Appointment Queue</span>
+                    <a href="{% url 'appointments:appointment_create' %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus"></i> New Appointment
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if todays_appointments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Patient</th>
+                                        <th>Doctor</th>
+                                        <th>Time</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for apt in todays_appointments %}
+                                        <tr>
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>{{ apt.patient.first_name }} {{ apt.patient.last_name }}</td>
+                                            <td>Dr. {{ apt.doctor.first_name }} {{ apt.doctor.last_name }}</td>
+                                            <td><strong>{{ apt.appointment_time }}</strong></td>
+                                            <td>
+                                                <span class="badge badge-{{ apt.status }}">{{ apt.get_status_display }}</span>
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'appointments:appointment_edit' apt.id %}" class="btn btn-sm btn-warning" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="{% url 'appointments:appointment_detail' apt.id %}" class="btn btn-sm btn-info" title="View">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-4">
+                            <i class="fas fa-calendar-times fa-2x mb-2 d-block"></i>
+                            No appointments scheduled for today
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# ── Recently Registered Patients ── #}
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-user-clock"></i> Recent Patients</span>
+                    <a href="{% url 'patients:patient_list' %}" class="btn btn-sm btn-outline-primary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_patients %}
+                        <ul class="list-group list-group-flush">
+                            {% for patient in recent_patients %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ patient.first_name }} {{ patient.last_name }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ patient.contact }}</small>
+                                    </div>
+                                    <a href="{% url 'patients:patient_detail' patient.id %}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted text-center py-4">No patients yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
     </div>
 
 {% elif role == 'patient' %}
@@ -257,5 +725,3 @@
     </div>
 {% endif %}
 {% endblock %}
-
-

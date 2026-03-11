@@ -9,7 +9,7 @@ from django.db.models import Q
 from .models import Appointment
 from patients.models import Patient
 from doctors.models import Doctor
-from core.models import VisitHistory
+
 from core.views import check_role
 
 

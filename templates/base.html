@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Hospital Management System{% endblock %}</title>
+
     <style>
         body{
     font-family: "Poppins", sans-serif;
@@ -130,6 +131,7 @@
 
 .purple{
     background:#8b5cf6;
+
 }
         .table-container{
     background:white;
@@ -164,6 +166,7 @@ table td{
 
 .pending{
     background:#f59e0b;
+   background-image: linear-gradient(to bottom,transparent);
 }
 
 .confirmed{
@@ -190,7 +193,8 @@ margin-left:180px;
     </style>
 
     {% load static %}
-
+<!--    favicon-->
+      <link rel="icon" type="image/x-icon" href="{% static 'image/hosiptal.png' %}">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -283,6 +287,14 @@ margin-left:180px;
                         <a class="nav-link {% if 'doctor' in request.resolver_match.url_name %}active{% endif %}"
                            href="{% url 'doctors:doctor_list' %}">
                             <i class="fas fa-stethoscope"></i> Doctors
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% if user.profile.role == 'admin' %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'staff' in request.resolver_match.url_name %}active{% endif %}"
+                           href="{% url 'core:staff_list' %}">
+                            <i class="fas fa-user-tie"></i> Staff
                         </a>
                     </li>
                     {% endif %}

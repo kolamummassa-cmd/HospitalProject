@@ -50,24 +50,17 @@
                             <input type="email" class="form-control" id="email" name="email" value="{{ patient.email|default:'' }}">
                         </div>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="address" class="form-label">Address *</label>
-                        <textarea class="form-control" id="address" name="address" rows="2" required>{{ patient.address|default:'' }}</textarea>
-                    </div>
+
                     
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="city" class="form-label">City *</label>
+
+                         <div class="col-md-6 mb-3">
+                            <label for="city" class="form-label">County *</label>
                             <input type="text" class="form-control" id="city" name="city" value="{{ patient.city|default:'' }}" required>
                         </div>
-                        <div class="col-md-3 mb-3">
-                            <label for="state" class="form-label">State *</label>
-                            <input type="text" class="form-control" id="state" name="state" value="{{ patient.state|default:'' }}" required>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label for="zip_code" class="form-label">Zip Code *</label>
-                            <input type="text" class="form-control" id="zip_code" name="zip_code" value="{{ patient.zip_code|default:'' }}" required>
+                        <div class="col-md-6 mb-3">
+                            <label for="address" class="form-label">Address *</label>
+                            <textarea class="form-control" id="address" name="address" rows="2" required>{{ patient.address|default:'' }}</textarea>
                         </div>
                     </div>
                     

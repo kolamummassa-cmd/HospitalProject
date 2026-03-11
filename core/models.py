@@ -1,11 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.core.validators import RegexValidator
-from datetime import datetime
-
-# from appointments.models import Appointment
-# from doctors.models import Doctor
-# from patients.models import Patient
 
 
 class UserProfile(models.Model):
@@ -35,24 +29,3 @@ class UserProfile(models.Model):
         db_table = 'core_user_profile'
         verbose_name = 'User Profile'
         verbose_name_plural = 'User Profiles'
-
-
-class VisitHistory(models.Model):
-    patient = models.ForeignKey("patients.Patient", on_delete=models.CASCADE)
-    doctor = models.ForeignKey('doctors.Doctor', on_delete=models.CASCADE)
-    visit_date = models.DateTimeField(auto_now_add=True)
-    notes = models.TextField(blank=True)
-
-    def __str__(self):
-        return f"{self.patient} - {self.visit_date}"
-
-
-
-
-
-
-
-
-
-
-

@@ -7,11 +7,13 @@ class Appointment(models.Model):
 
     STATUS_CHOICES = [
         ('pending', 'Pending'),
+        ('confirmed', 'Confirmed'),
+        ('scheduled', 'Scheduled'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
     ]
 
-    # ✅ Use string references instead of importing models
+    #  Use string references instead of importing models
     patient = models.ForeignKey(
         "patients.Patient",
         on_delete=models.CASCADE,
@@ -50,7 +52,7 @@ class Appointment(models.Model):
         return f"{self.patient} - Dr. {self.doctor} ({self.appointment_date} {self.appointment_time})"
 
     class Meta:
-        db_table = "appointments_appointment"   # ✅ better naming
+        db_table = "appointments_appointment"   #  better naming
         verbose_name = "Appointment"
         verbose_name_plural = "Appointments"
         ordering = ["-appointment_date", "-appointment_time"]
