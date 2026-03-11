@@ -47,10 +47,8 @@ class Patient(models.Model):
     )
 
     email = models.EmailField(blank=True, null=True)
-    address = models.TextField()
-    city = models.CharField(max_length=100)
-    state = models.CharField(max_length=100)
-    zip_code = models.CharField(max_length=10)
+    address = models.TextField(blank=True, null=True)
+    county = models.CharField(max_length=100, blank=True, null=True)
 
     blood_type = models.CharField(
         max_length=5,
@@ -80,7 +78,7 @@ class Patient(models.Model):
         )
 
     class Meta:
-        db_table = "patients_patient"   # ✅ corrected
+        db_table = "patients_patient"
         verbose_name = "Patient"
         verbose_name_plural = "Patients"
         ordering = ["-created_at"]
@@ -89,7 +87,6 @@ class Patient(models.Model):
 class VisitHistory(models.Model):
     """Medical visit history and records"""
 
-    # ✅ Use string references (NO imports)
     appointment = models.OneToOneField(
         "appointments.Appointment",
         on_delete=models.CASCADE,
@@ -122,7 +119,7 @@ class VisitHistory(models.Model):
         return f"Visit: {self.patient} - Dr. {self.doctor} ({self.visit_date.date()})"
 
     class Meta:
-        db_table = "patients_visit_history"   # ✅ corrected
+        db_table = "patients_visit_history"
         verbose_name = "Visit History"
         verbose_name_plural = "Visit Histories"
         ordering = ["-visit_date"]
