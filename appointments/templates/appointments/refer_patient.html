@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% block title %}Refer Patient - HMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-random text-primary"></i> Refer Patient</h1>
+    <a href="{% url 'core:dashboard' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back
+    </a>
+</div>
+
+<div class="row">
+
+    {# ── Patient & Appointment Summary ── #}
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-user"></i> Patient Summary
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <div style="width:65px;height:65px;border-radius:50%;background:#e8f4fd;
+                                display:flex;align-items:center;justify-content:center;
+                                margin:0 auto 10px;">
+                        <i class="fas fa-user fa-2x text-primary"></i>
+                    </div>
+                    <h5 class="mb-0">{{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</h5>
+                    <small class="text-muted">Age {{ appointment.patient.age }}</small>
+                </div>
+                <hr>
+                <table class="table table-sm table-borderless">
+                    <tr>
+                        <td class="text-muted">Blood Type</td>
+                        <td><span class="badge bg-danger">{{ appointment.patient.blood_type|default:'N/A' }}</span></td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Allergies</td>
+                        <td class="text-danger">{{ appointment.patient.allergies|default:'None' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Contact</td>
+                        <td>{{ appointment.patient.contact }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Original Date</td>
+                        <td>{{ appointment.appointment_date }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Reason</td>
+                        <td>{{ appointment.reason|default:'-' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Referring Dr.</td>
+                        <td>Dr. {{ current_doctor.first_name }} {{ current_doctor.last_name }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# ── Referral Form ── #}
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-random"></i> Referral Details
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Refer To Doctor *</label>
+                        <select class="form-select form-select-lg" name="referred_to" required
+                                onchange="showDoctorInfo(this)">
+                            <option value="">-- Select a Doctor --</option>
+                            {% for doctor in available_doctors %}
+                            <option value="{{ doctor.id }}"
+                                    data-spec="{{ doctor.specialization }}"
+                                    data-fee="{{ doctor.consultation_fee }}"
+                                    data-avail="{{ doctor.availability|default:'Contact hospital' }}">
+                                Dr. {{ doctor.first_name }} {{ doctor.last_name }} — {{ doctor.specialization }}
+                            </option>
+                            {% endfor %}
+                        </select>
+
+                        {# Doctor info preview card #}
+                        <div id="doctorPreview" class="mt-3 p-3 rounded" style="background:#f0f7ff;display:none;">
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <small class="text-muted d-block">Specialization</small>
+                                    <strong id="prevSpec">-</strong>
+                                </div>
+                                <div class="col-4">
+                                    <small class="text-muted d-block">Fee</small>
+                                    <strong id="prevFee">-</strong>
+                                </div>
+                                <div class="col-4">
+                                    <small class="text-muted d-block">Availability</small>
+                                    <strong id="prevAvail" class="small">-</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">New Appointment Date *</label>
+                            <input type="date" class="form-control" name="new_date"
+                                   min="{{ appointment.appointment_date }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">New Appointment Time *</label>
+                            <input type="time" class="form-control" name="new_time" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Reason for Referral *</label>
+                        <textarea class="form-control" name="reason" rows="4" required
+                                  placeholder="Describe why you are referring this patient, diagnosis so far, and what you need the other doctor to do..."></textarea>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Note:</strong> The original appointment will be marked as
+                        <strong>Referred</strong> and a new confirmed appointment will be
+                        created with the selected doctor.
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-random"></i> Confirm Referral
+                        </button>
+                        <a href="{% url 'core:dashboard' %}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function showDoctorInfo(select) {
+    const opt = select.options[select.selectedIndex];
+    const preview = document.getElementById('doctorPreview');
+    if (opt.value) {
+        document.getElementById('prevSpec').textContent = opt.dataset.spec || '-';
+        document.getElementById('prevFee').textContent = '$' + (opt.dataset.fee || '0');
+        document.getElementById('prevAvail').textContent = opt.dataset.avail || '-';
+        preview.style.display = 'block';
+    } else {
+        preview.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}

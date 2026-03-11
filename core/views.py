@@ -175,6 +175,11 @@ def dashboard(request):
             patient_ids = all_apts.values_list('patient_id', flat=True).distinct()
             my_patients = Patient.objects.filter(id__in=patient_ids)[:8]
 
+            from appointments.models import Referral
+            referrals_made = Referral.objects.filter(
+                referred_from=doctor
+            ).select_related('patient', 'referred_to', 'new_appointment').order_by('-created_at')[:5]
+
             context.update({
                 'doctor': doctor,
                 'todays_appointments': todays_apts,
@@ -184,6 +189,7 @@ def dashboard(request):
                 'completion_rate': completion_rate,
                 'upcoming_week': upcoming_week,
                 'my_patients': my_patients,
+                'referrals_made': referrals_made,
             })
 
     # ── RECEPTIONIST ───────────────────────────
@@ -232,6 +238,11 @@ def dashboard(request):
                 patient=patient
             ).select_related('doctor').order_by('-visit_date')[:10]
 
+            from appointments.models import Referral
+            patient_referrals = Referral.objects.filter(
+                patient=patient
+            ).select_related('referred_from', 'referred_to', 'new_appointment').order_by('-created_at')[:3]
+
             context.update({
                 'patient': patient,
                 'upcoming_appointments': upcoming,
@@ -242,6 +253,7 @@ def dashboard(request):
                 'total_visits': all_apts.count(),
                 'completed_visits': all_apts.filter(status='completed').count(),
                 'cancelled_appointments': all_apts.filter(status='cancelled').count(),
+                'patient_referrals': patient_referrals,
             })
 
     return render(request, 'core/dashboard.html', context)

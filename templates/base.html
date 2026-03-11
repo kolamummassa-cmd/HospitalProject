@@ -214,20 +214,45 @@
                 box-shadow:0 5px 15px rgba(0,0,0,0.1);
             }
 
-            table{
-                width:100%;
-                border-collapse:collapse;
+            /* ── Table alignment fix — uses !important to override Bootstrap ── */
+            .table > thead > tr > th,
+            .table > tbody > tr > td,
+            .table th,
+            .table td,
+            table th,
+            table td {
+                vertical-align: middle !important;
+                padding: 13px 16px !important;
             }
 
-            table th{
-                text-align:left;
-                padding:12px;
-                border-bottom:2px solid #ddd;
+            .table > thead > tr > th,
+            .table th,
+            table th {
+                font-size: 0.78rem !important;
+                font-weight: 600 !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.05em !important;
+                color: #64748b !important;
+                white-space: nowrap !important;
+                background: #f8fafc !important;
+                border-bottom: 2px solid #e2e8f0 !important;
             }
 
-            table td{
-                padding:12px;
-                border-bottom:1px solid #eee;
+            .table > tbody > tr > td,
+            .table td,
+            table td {
+                font-size: 0.9rem !important;
+                color: #1e293b !important;
+                border-bottom: 1px solid #f1f5f9 !important;
+            }
+
+            .table-hover > tbody > tr:hover > td,
+            .table-hover > tbody > tr:hover > th {
+                background-color: #f0f7ff !important;
+            }
+
+            .table > tbody > tr:last-child > td {
+                border-bottom: none !important;
             }
 
             .status{
@@ -466,6 +491,15 @@
                         <a class="nav-link {% if 'appointment' in request.resolver_match.url_name %}active{% endif %}"
                            href="{% url 'appointments:appointment_list' %}">
                             <i class="fas fa-calendar-alt"></i> Appointments
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% if user.profile.role == 'admin' or user.profile.role == 'doctor' %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'referral' in request.resolver_match.url_name %}active{% endif %}"
+                           href="{% url 'appointments:referral_list' %}">
+                            <i class="fas fa-random"></i> Referrals
                         </a>
                     </li>
                     {% endif %}

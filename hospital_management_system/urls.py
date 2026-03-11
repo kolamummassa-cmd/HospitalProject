@@ -15,27 +15,29 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.shortcuts import redirect
+
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-# from django.contrib.auth import views as auth_views
-from core import views as core_views
+from django.views.generic import RedirectView
+
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path('', lambda request: redirect('core:login')),
-    path('', include('core.urls')),        # ← was 'core/', change to ''
+
+    path('', RedirectView.as_view(url='/core/login/')),
+    path('core/', include('core.urls')),        # ← was 'core/', change to ''
     path('patients/', include('patients.urls')),
     path('doctors/', include('doctors.urls')),
     path('appointments/', include('appointments.urls')),
     path('reports/', include('reports.urls')),
+
 ]
 
 
 
-    # path('login/', auth_views.LoginView.as_view(), name='login'),
-    # path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+
 
 
 
