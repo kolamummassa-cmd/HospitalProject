@@ -1,0 +1,457 @@
+{% extends 'base.html' %}
+{% block title %}Bill #{{ bill.id }} - HMS
+{# ── Payment Record ── #}
+{% if bill.status == 'paid' and bill.payment %}
+<div class="row mt-2">
+    <div class="col-12">
+        <div class="card border-success">
+            <div class="card-header" style="background: linear-gradient(90deg,#22c55e,#14532d)!important;">
+                <i class="fas fa-check-circle"></i> Payment Details
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">Amount Paid</small>
+                        <strong class="text-success fs-5">KES {{ bill.payment.amount_paid }}</strong>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">Payment Method</small>
+                        <strong>{{ bill.payment.get_payment_method_display }}</strong>
+                    </div>
+                    {% if bill.payment.mpesa_number %}
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">M-Pesa Number</small>
+                        <strong>{{ bill.payment.mpesa_number }}</strong>
+                    </div>
+                    {% endif %}
+                    {% if bill.payment.transaction_code %}
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">Transaction Code</small>
+                        <strong>{{ bill.payment.transaction_code }}</strong>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-3 mt-2">
+                        <small class="text-muted d-block">Paid On</small>
+                        <strong>{{ bill.payment.paid_at|date:'Y-m-d H:i' }}</strong>
+                    </div>
+                    {% if bill.payment.notes %}
+                    <div class="col-md-6 mt-2">
+                        <small class="text-muted d-block">Notes</small>
+                        <span>{{ bill.payment.notes }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# ── Record Payment Form ── #}
+{% if bill.status != 'paid' and bill.status != 'cancelled' %}
+{% if user.profile.role == 'admin' or user.profile.role == 'receptionist' %}
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-money-bill-wave"></i> Record Payment
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'billing:bill_record_payment' bill.id %}">
+                    {% csrf_token %}
+                    <div class="row g-3">
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Amount Paid (KES) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="amount_paid"
+                                   value="{{ bill.total }}" step="0.01" min="0" required>
+                            <small class="text-muted">Total due: <strong>KES {{ bill.total }}</strong></small>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Payment Method <span class="text-danger">*</span></label>
+                            <select class="form-select" name="payment_method" id="paymentMethod" required>
+                                <option value="mpesa">M-Pesa</option>
+                                <option value="cash">Cash</option>
+                                <option value="bank">Bank Transfer</option>
+                                <option value="insurance">Insurance</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3" id="mpesaFields">
+                            <label class="form-label fw-semibold">M-Pesa Number</label>
+                            <input type="text" class="form-control" name="mpesa_number"
+                                   placeholder="e.g. 0712345678" maxlength="20">
+                        </div>
+
+                        <div class="col-md-3" id="transactionField">
+                            <label class="form-label fw-semibold">Transaction Code</label>
+                            <input type="text" class="form-control" name="transaction_code"
+                                   placeholder="e.g. QKA1234XYZ" maxlength="50">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Notes</label>
+                            <input type="text" class="form-control" name="notes"
+                                   placeholder="Optional notes...">
+                        </div>
+
+                        <div class="col-md-6 d-flex align-items-end">
+                            <button type="submit" class="btn btn-success btn-lg w-100"
+                                    onclick="return confirm('Confirm payment of KES {{ bill.total }} for {{ bill.patient.first_name }} {{ bill.patient.last_name }}?')">
+                                <i class="fas fa-check-circle"></i> Confirm Payment & Mark as Paid
+                            </button>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Show/hide M-Pesa fields based on payment method
+document.getElementById('paymentMethod').addEventListener('change', function () {
+    const isMpesa = this.value === 'mpesa';
+    document.getElementById('mpesaFields').style.display = isMpesa ? 'block' : 'none';
+    document.getElementById('transactionField').style.display = isMpesa ? 'block' : 'none';
+});
+</script>
+{% endif %}
+{% endif %}
+
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-file-invoice-dollar text-success"></i> Bill #{{ bill.id }}</h1>
+    <div class="d-flex gap-2">
+        {% if bill.status == 'pending' %}
+        <form method="post" action="{% url 'billing:bill_mark_sent' bill.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-paper-plane"></i> Mark as Sent
+            </button>
+        </form>
+        {% endif %}
+
+        {% if bill.status == 'sent' %}
+        <form method="post" action="{% url 'billing:bill_mark_paid' bill.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-check-circle"></i> Mark as Paid
+            </button>
+        </form>
+        {% endif %}
+
+        <a href="{% url 'billing:bill_print' bill.id %}" target="_blank" class="btn btn-secondary">
+            <i class="fas fa-print"></i> Print Invoice
+        </a>
+        <a href="{% url 'billing:bill_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+<div class="row">
+
+    {# ── Bill Info ── #}
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i> Bill Information
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless">
+                    <tr>
+                        <td class="text-muted">Bill #</td>
+                        <td><strong>{{ bill.id }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Status</td>
+                        <td>
+                            <span class="badge badge-{{ bill.status }}">
+                                {{ bill.get_status_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Patient</td>
+                        <td><strong>{{ bill.patient.first_name }} {{ bill.patient.last_name }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Doctor</td>
+                        <td>Dr. {{ bill.doctor.first_name }} {{ bill.doctor.last_name }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Apt. Date</td>
+                        <td>{{ bill.appointment.appointment_date }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Created</td>
+                        <td>{{ bill.created_at|date:'Y-m-d' }}</td>
+                    </tr>
+                    {% if bill.paid_at %}
+                    <tr>
+                        <td class="text-muted">Paid On</td>
+                        <td class="text-success"><strong>{{ bill.paid_at|date:'Y-m-d' }}</strong></td>
+                    </tr>
+                    {% endif %}
+                </table>
+
+                {% if bill.notes %}
+                <hr>
+                <small class="text-muted d-block mb-1">Notes</small>
+                <p class="small mb-0">{{ bill.notes }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {# ── Bill Items ── #}
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-list"></i> Bill Items</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Qty</th>
+                                <th>Unit Price</th>
+                                <th>Total</th>
+                                {% if bill.status != 'paid' %}
+                                <th></th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in bill.items.all %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-secondary">{{ item.get_category_display }}</span>
+                                </td>
+                                <td>{{ item.description }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>${{ item.unit_price }}</td>
+                                <td><strong>${{ item.total }}</strong></td>
+                                {% if bill.status != 'paid' %}
+                                <td>
+                                    <form method="post"
+                                          action="{% url 'billing:bill_delete_item' item.id %}"
+                                          onsubmit="return confirm('Remove this item?')">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <td colspan="{% if bill.status != 'paid' %}4{% else %}3{% endif %}"
+                                    class="text-end fw-bold">Subtotal</td>
+                                <td><strong>${{ bill.subtotal }}</strong></td>
+                                {% if bill.status != 'paid' %}<td></td>{% endif %}
+                            </tr>
+                            {% if bill.discount > 0 %}
+                            <tr>
+                                <td colspan="{% if bill.status != 'paid' %}4{% else %}3{% endif %}"
+                                    class="text-end text-success">Discount</td>
+                                <td class="text-success">-${{ bill.discount }}</td>
+                                {% if bill.status != 'paid' %}<td></td>{% endif %}
+                            </tr>
+                            {% endif %}
+                            <tr class="table-success">
+                                <td colspan="{% if bill.status != 'paid' %}4{% else %}3{% endif %}"
+                                    class="text-end fw-bold fs-5">Total</td>
+                                <td class="fw-bold fs-5 text-success">${{ bill.total }}</td>
+                                {% if bill.status != 'paid' %}<td></td>{% endif %}
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {# ── Add Item Form ── #}
+        {% if bill.status != 'paid' and bill.status != 'cancelled' %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <i class="fas fa-plus"></i> Add Item
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'billing:bill_add_item' bill.id %}">
+                    {% csrf_token %}
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label small">Category</label>
+                            <select class="form-select form-select-sm" name="category">
+                                <option value="consultation">Consultation</option>
+                                <option value="lab">Lab Test</option>
+                                <option value="medication">Medication</option>
+                                <option value="procedure">Procedure</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">Description</label>
+                            <input type="text" class="form-control form-control-sm"
+                                   name="description" required placeholder="Item description">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small">Qty</label>
+                            <input type="number" class="form-control form-control-sm"
+                                   name="quantity" value="1" min="1">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small">Price ($)</label>
+                            <input type="number" class="form-control form-control-sm"
+                                   name="unit_price" step="0.01" min="0" required>
+                        </div>
+                        <div class="col-md-1">
+                            <button type="submit" class="btn btn-sm btn-primary w-100">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+{# ── Payment Record ── #}
+{% if bill.status == 'paid' and bill.payment %}
+<div class="row mt-2">
+    <div class="col-12">
+        <div class="card border-success">
+            <div class="card-header" style="background: linear-gradient(90deg,#22c55e,#14532d)!important;">
+                <i class="fas fa-check-circle"></i> Payment Details
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">Amount Paid</small>
+                        <strong class="text-success fs-5">KES {{ bill.payment.amount_paid }}</strong>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">Payment Method</small>
+                        <strong>{{ bill.payment.get_payment_method_display }}</strong>
+                    </div>
+                    {% if bill.payment.mpesa_number %}
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">M-Pesa Number</small>
+                        <strong>{{ bill.payment.mpesa_number }}</strong>
+                    </div>
+                    {% endif %}
+                    {% if bill.payment.transaction_code %}
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">Transaction Code</small>
+                        <strong>{{ bill.payment.transaction_code }}</strong>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-3 mt-2">
+                        <small class="text-muted d-block">Paid On</small>
+                        <strong>{{ bill.payment.paid_at|date:'Y-m-d H:i' }}</strong>
+                    </div>
+                    {% if bill.payment.notes %}
+                    <div class="col-md-6 mt-2">
+                        <small class="text-muted d-block">Notes</small>
+                        <span>{{ bill.payment.notes }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# ── Record Payment Form ── #}
+{% if bill.status != 'paid' and bill.status != 'cancelled' %}
+{% if user.profile.role == 'admin' or user.profile.role == 'receptionist' %}
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-money-bill-wave"></i> Record Payment
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'billing:bill_record_payment' bill.id %}">
+                    {% csrf_token %}
+                    <div class="row g-3">
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Amount Paid (KES) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="amount_paid"
+                                   value="{{ bill.total }}" step="0.01" min="0" required>
+                            <small class="text-muted">Total due: <strong>KES {{ bill.total }}</strong></small>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Payment Method <span class="text-danger">*</span></label>
+                            <select class="form-select" name="payment_method" id="paymentMethod" required>
+                                <option value="mpesa">M-Pesa</option>
+                                <option value="cash">Cash</option>
+                                <option value="bank">Bank Transfer</option>
+                                <option value="insurance">Insurance</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3" id="mpesaFields">
+                            <label class="form-label fw-semibold">M-Pesa Number</label>
+                            <input type="text" class="form-control" name="mpesa_number"
+                                   placeholder="e.g. 0712345678" maxlength="20">
+                        </div>
+
+                        <div class="col-md-3" id="transactionField">
+                            <label class="form-label fw-semibold">Transaction Code</label>
+                            <input type="text" class="form-control" name="transaction_code"
+                                   placeholder="e.g. QKA1234XYZ" maxlength="50">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Notes</label>
+                            <input type="text" class="form-control" name="notes"
+                                   placeholder="Optional notes...">
+                        </div>
+
+                        <div class="col-md-6 d-flex align-items-end">
+                            <button type="submit" class="btn btn-success btn-lg w-100"
+                                    onclick="return confirm('Confirm payment of KES {{ bill.total }} for {{ bill.patient.first_name }} {{ bill.patient.last_name }}?')">
+                                <i class="fas fa-check-circle"></i> Confirm Payment & Mark as Paid
+                            </button>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Show/hide M-Pesa fields based on payment method
+document.getElementById('paymentMethod').addEventListener('change', function () {
+    const isMpesa = this.value === 'mpesa';
+    document.getElementById('mpesaFields').style.display = isMpesa ? 'block' : 'none';
+    document.getElementById('transactionField').style.display = isMpesa ? 'block' : 'none';
+});
+</script>
+{% endif %}
+{% endif %}
+
+{% endblock %}

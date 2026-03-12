@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice #{{ bill.id }} - HMS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #fff;
+            color: #1e293b;
+            padding: 40px;
+            font-size: 14px;
+        }
+
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 40px;
+            padding-bottom: 24px;
+            border-bottom: 3px solid #1f3c88;
+        }
+
+        .hospital-name {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1f3c88;
+        }
+
+        .hospital-name span {
+            color: #22c55e;
+        }
+
+        .invoice-title {
+            text-align: right;
+        }
+
+        .invoice-title h2 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1f3c88;
+            letter-spacing: 2px;
+        }
+
+        .invoice-title p {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .badge-status {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-paid { background: #dcfce7; color: #166534; }
+        .badge-pending { background: #fef9c3; color: #854d0e; }
+        .badge-sent { background: #dbeafe; color: #1e40af; }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 36px;
+        }
+
+        .info-box h4 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #94a3b8;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .info-box p {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #1e293b;
+        }
+
+        .info-box strong {
+            font-size: 16px;
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+        }
+
+        thead tr {
+            background: #1f3c88;
+            color: white;
+        }
+
+        thead th {
+            padding: 12px 16px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+
+        tbody tr:nth-child(even) { background: #f8fafc; }
+
+        tbody td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .totals {
+            margin-left: auto;
+            width: 280px;
+        }
+
+        .totals table {
+            margin-bottom: 0;
+        }
+
+        .totals td {
+            padding: 8px 16px;
+            border: none;
+        }
+
+        .totals tr.total-row {
+            background: #1f3c88;
+            color: white;
+            border-radius: 8px;
+        }
+
+        .totals tr.total-row td {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        @media print {
+            body { padding: 20px; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+{# ── Print Button ── #}
+<div class="no-print" style="margin-bottom:20px;">
+    <button onclick="window.print()"
+            style="background:#1f3c88;color:white;border:none;padding:10px 24px;
+                   border-radius:8px;cursor:pointer;font-size:14px;">
+        🖨 Print Invoice
+    </button>
+    <a href="javascript:history.back()"
+       style="margin-left:10px;color:#64748b;text-decoration:none;font-size:14px;">
+        ← Back
+    </a>
+</div>
+
+{# ── Header ── #}
+<div class="invoice-header">
+    <div>
+        <div class="hospital-name">Hospital<span>+</span> HMS</div>
+        <p style="color:#64748b;margin-top:4px;font-size:13px;">
+            Hospital Management System<br>
+            Nairobi, Kenya
+        </p>
+    </div>
+    <div class="invoice-title">
+        <h2>INVOICE</h2>
+        <p>Invoice #{{ bill.id }}</p>
+        <p>Date: {{ bill.created_at|date:'F d, Y' }}</p>
+        <div style="margin-top:8px;">
+            <span class="badge-status badge-{{ bill.status }}">
+                {{ bill.get_status_display }}
+            </span>
+        </div>
+    </div>
+</div>
+
+{# ── Patient & Doctor Info ── #}
+<div class="info-grid">
+    <div class="info-box">
+        <h4>Bill To</h4>
+        <p>
+            <strong>{{ bill.patient.first_name }} {{ bill.patient.last_name }}</strong>
+            Contact: {{ bill.patient.contact }}<br>
+            {% if bill.patient.email %}Email: {{ bill.patient.email }}<br>{% endif %}
+            {% if bill.patient.county %}County: {{ bill.patient.county }}{% endif %}
+        </p>
+    </div>
+    <div class="info-box">
+        <h4>Doctor</h4>
+        <p>
+            <strong>Dr. {{ bill.doctor.first_name }} {{ bill.doctor.last_name }}</strong>
+            Specialization: {{ bill.doctor.specialization }}<br>
+            Appointment: {{ bill.appointment.appointment_date }}<br>
+            Reason: {{ bill.appointment.reason|default:'-' }}
+        </p>
+    </div>
+</div>
+
+{# ── Items Table ── #}
+<table>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th style="text-align:center;">Qty</th>
+            <th style="text-align:right;">Unit Price</th>
+            <th style="text-align:right;">Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in bill.items.all %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ item.get_category_display }}</td>
+            <td>{{ item.description }}</td>
+            <td style="text-align:center;">{{ item.quantity }}</td>
+            <td style="text-align:right;">${{ item.unit_price }}</td>
+            <td style="text-align:right;"><strong>${{ item.total }}</strong></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{# ── Totals ── #}
+<div class="totals">
+    <table>
+        <tr>
+            <td style="color:#64748b;">Subtotal</td>
+            <td style="text-align:right;">${{ bill.subtotal }}</td>
+        </tr>
+        {% if bill.discount > 0 %}
+        <tr>
+            <td style="color:#22c55e;">Discount</td>
+            <td style="text-align:right;color:#22c55e;">-${{ bill.discount }}</td>
+        </tr>
+        {% endif %}
+        <tr class="total-row">
+            <td>Total Due</td>
+            <td style="text-align:right;">${{ bill.total }}</td>
+        </tr>
+    </table>
+</div>
+
+{% if bill.notes %}
+<div style="margin-top:30px;padding:16px;background:#f8fafc;border-radius:8px;">
+    <strong style="font-size:12px;text-transform:uppercase;color:#94a3b8;">Notes</strong>
+    <p style="margin-top:6px;">{{ bill.notes }}</p>
+</div>
+{% endif %}
+
+{# ── Footer ── #}
+<div class="footer">
+    <span>Thank you for choosing Hospital+ HMS</span>
+    <span>Generated on {{ bill.created_at|date:'F d, Y' }}</span>
+    {% if bill.paid_at %}
+    <span style="color:#22c55e;font-weight:600;">✓ PAID on {{ bill.paid_at|date:'F d, Y' }}</span>
+    {% endif %}
+</div>
+
+</body>
+</html>

@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% block title %}Create Bill - HMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-file-invoice-dollar text-success"></i> Create Bill</h1>
+    <a href="{% url 'billing:bill_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back
+    </a>
+</div>
+
+<div class="row">
+
+    {# ── Appointment Summary ── #}
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-calendar-check"></i> Appointment Summary
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless">
+                    <tr>
+                        <td class="text-muted">Patient</td>
+                        <td><strong>{{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Doctor</td>
+                        <td>Dr. {{ appointment.doctor.first_name }} {{ appointment.doctor.last_name }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Specialization</td>
+                        <td>{{ appointment.doctor.specialization }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Date</td>
+                        <td>{{ appointment.appointment_date }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Time</td>
+                        <td>{{ appointment.appointment_time }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Reason</td>
+                        <td>{{ appointment.reason|default:'-' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Consult Fee</td>
+                        <td><strong class="text-success">${{ consultation_fee }}</strong></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# ── Bill Form ── #}
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-plus"></i> Bill Details
+            </div>
+            <div class="card-body">
+                <form method="post" id="billForm">
+                    {% csrf_token %}
+
+                    {# Consultation fee auto-added note #}
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Consultation fee of <strong>${{ consultation_fee }}</strong> will be
+                        automatically added. Add any extra charges below.
+                    </div>
+
+                    {# Extra Items #}
+                    <h6 class="fw-bold mb-3">Additional Charges</h6>
+                    <div id="itemsContainer">
+                        <div class="item-row row g-2 mb-2 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label small">Category</label>
+                                <select class="form-select form-select-sm" name="category">
+                                    {% for val, label in categories %}
+                                    <option value="{{ val }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small">Description</label>
+                                <input type="text" class="form-control form-control-sm"
+                                       name="description" placeholder="e.g. Blood Test">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small">Qty</label>
+                                <input type="number" class="form-control form-control-sm"
+                                       name="quantity" value="1" min="1">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small">Unit Price ($)</label>
+                                <input type="number" class="form-control form-control-sm"
+                                       name="unit_price" step="0.01" min="0" placeholder="0.00">
+                            </div>
+                            <div class="col-md-1">
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-row">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-outline-primary btn-sm mb-4" id="addItem">
+                        <i class="fas fa-plus"></i> Add Another Item
+                    </button>
+
+                    <hr>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Discount ($)</label>
+                            <input type="number" class="form-control" name="discount"
+                                   step="0.01" min="0" value="0" placeholder="0.00">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Notes</label>
+                            <textarea class="form-control" name="notes" rows="2"
+                                      placeholder="Optional notes..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-3">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-file-invoice-dollar"></i> Generate Bill
+                        </button>
+                        <a href="{% url 'billing:bill_list' %}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// Clone item template
+const itemTemplate = document.querySelector('.item-row').cloneNode(true);
+
+document.getElementById('addItem').addEventListener('click', function () {
+    const clone = itemTemplate.cloneNode(true);
+    clone.querySelectorAll('input').forEach(i => i.value = i.defaultValue || '');
+    document.getElementById('itemsContainer').appendChild(clone);
+    bindRemove();
+});
+
+function bindRemove() {
+    document.querySelectorAll('.remove-row').forEach(btn => {
+        btn.onclick = function () {
+            const rows = document.querySelectorAll('.item-row');
+            if (rows.length > 1) btn.closest('.item-row').remove();
+        };
+    });
+}
+bindRemove();
+</script>
+{% endblock %}

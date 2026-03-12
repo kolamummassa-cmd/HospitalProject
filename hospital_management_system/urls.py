@@ -32,6 +32,7 @@ urlpatterns = [
     path('doctors/', include('doctors.urls')),
     path('appointments/', include('appointments.urls')),
     path('reports/', include('reports.urls')),
+    path('billing/', include('billing.urls')),
 
 ]
 
