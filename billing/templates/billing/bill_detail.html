@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Bill #{{ bill.id }} - HMS
+{% block title %}Bill #{{ bill.id }} - ApexCare HMS
 {# ── Payment Record ── #}
 {% if bill.status == 'paid' and bill.payment %}
 <div class="row mt-2">
@@ -31,7 +31,7 @@
                     </div>
                     {% endif %}
                     <div class="col-md-3 mt-2">
-                        <small class="text-muted d-block">Paid On</small>
+                        <small class="text-muted d-block btn btn-info">Paid On</small>
                         <strong>{{ bill.payment.paid_at|date:'Y-m-d H:i' }}</strong>
                     </div>
                     {% if bill.payment.notes %}
@@ -57,7 +57,7 @@
                 <i class="fas fa-money-bill-wave"></i> Record Payment
             </div>
             <div class="card-body">
-                <form method="post" action="{% url 'billing:bill_record_payment' bill.id %}">
+                <form method="post" action="{% url 'billing:bill_pay_now' bill.pk %}">
                     {% csrf_token %}
                     <div class="row g-3">
 
@@ -239,8 +239,8 @@ document.getElementById('paymentMethod').addEventListener('change', function () 
                                 </td>
                                 <td>{{ item.description }}</td>
                                 <td>{{ item.quantity }}</td>
-                                <td>${{ item.unit_price }}</td>
-                                <td><strong>${{ item.total }}</strong></td>
+                                <td>Ksh{{ item.unit_price }}</td>
+                                <td><strong>Ksh{{ item.total }}</strong></td>
                                 {% if bill.status != 'paid' %}
                                 <td>
                                     <form method="post"
@@ -260,21 +260,21 @@ document.getElementById('paymentMethod').addEventListener('change', function () 
                             <tr>
                                 <td colspan="{% if bill.status != 'paid' %}4{% else %}3{% endif %}"
                                     class="text-end fw-bold">Subtotal</td>
-                                <td><strong>${{ bill.subtotal }}</strong></td>
+                                <td><strong>Ksh{{ bill.subtotal }}</strong></td>
                                 {% if bill.status != 'paid' %}<td></td>{% endif %}
                             </tr>
                             {% if bill.discount > 0 %}
                             <tr>
                                 <td colspan="{% if bill.status != 'paid' %}4{% else %}3{% endif %}"
                                     class="text-end text-success">Discount</td>
-                                <td class="text-success">-${{ bill.discount }}</td>
+                                <td class="text-success">-Ksh{{ bill.discount }}</td>
                                 {% if bill.status != 'paid' %}<td></td>{% endif %}
                             </tr>
                             {% endif %}
                             <tr class="table-success">
                                 <td colspan="{% if bill.status != 'paid' %}4{% else %}3{% endif %}"
                                     class="text-end fw-bold fs-5">Total</td>
-                                <td class="fw-bold fs-5 text-success">${{ bill.total }}</td>
+                                <td class="fw-bold fs-5 text-success">Ksh{{ bill.total }}</td>
                                 {% if bill.status != 'paid' %}<td></td>{% endif %}
                             </tr>
                         </tfoot>
@@ -314,7 +314,7 @@ document.getElementById('paymentMethod').addEventListener('change', function () 
                                    name="quantity" value="1" min="1">
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label small">Price ($)</label>
+                            <label class="form-label small">Price (Ksh)</label>
                             <input type="number" class="form-control form-control-sm"
                                    name="unit_price" step="0.01" min="0" required>
                         </div>
@@ -389,7 +389,7 @@ document.getElementById('paymentMethod').addEventListener('change', function () 
                 <i class="fas fa-money-bill-wave"></i> Record Payment
             </div>
             <div class="card-body">
-                <form method="post" action="{% url 'billing:bill_record_payment' bill.id %}">
+                <form method="post" action="{% url 'billing:bill_pay_now' bill.pk %}">
                     {% csrf_token %}
                     <div class="row g-3">
 
@@ -429,13 +429,48 @@ document.getElementById('paymentMethod').addEventListener('change', function () 
                                    placeholder="Optional notes...">
                         </div>
 
-                        <div class="col-md-6 d-flex align-items-end">
+                        <div class="col-md-6 d-flex flex-column align-items-end gap-2">
+
+                            <!-- Pay Now Button -->
+                            <button type="button" class="btn btn-warning btn-lg w-100" onclick="submitPayNow()">
+                                <i class="fas fa-bolt"></i> Pay Now
+                            </button>
+
+                            <!-- Existing Confirm Button (unchanged) -->
                             <button type="submit" class="btn btn-success btn-lg w-100"
                                     onclick="return confirm('Confirm payment of KES {{ bill.total }} for {{ bill.patient.first_name }} {{ bill.patient.last_name }}?')">
                                 <i class="fas fa-check-circle"></i> Confirm Payment & Mark as Paid
                             </button>
                         </div>
 
+                        <script>
+                        function submitPayNow() {
+                            const phone = document.querySelector('[name="mpesa_number"]').value.trim();
+
+                            if (!phone) {
+                                alert('Please enter an M-Pesa number before clicking Pay Now.');
+                                return;
+                            }
+
+                            if (!confirm(`Send M-Pesa STK Push to ${phone} for KES {{ bill.total }}?`)) return;
+
+                            fetch("{% url 'billing:bill_pay_now' bill.id %}", {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                    'X-CSRFToken': '{{ csrf_token }}'
+                                },
+                                body: `mpesa_number=${phone}`
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                alert(data.message);
+                            })
+                            .catch(() => {
+                                alert('Something went wrong. Please try again.');
+                            });
+                        }
+                        </script>
                     </div>
                 </form>
             </div>

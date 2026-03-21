@@ -40,7 +40,7 @@ class Patient(models.Model):
         max_length=20,
         validators=[
             RegexValidator(
-                regex=r'^\+?\d{9,15}$',
+                regex=r'^\+?\d{9,15}Ksh',
                 message='Enter a valid phone number'
             )
         ]

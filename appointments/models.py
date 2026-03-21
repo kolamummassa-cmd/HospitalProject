@@ -11,7 +11,7 @@ class Appointment(models.Model):
         ('scheduled', 'Scheduled'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
-        ('referred', 'Referred'),      # ← new
+        ('referred', 'Referred'),
     ]
 
     patient = models.ForeignKey(

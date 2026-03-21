@@ -7,7 +7,7 @@ class Doctor(models.Model):
     """Doctor model with specialization and availability"""
 
     phone_validator = RegexValidator(
-        regex=r'^\+?\d{9,15}$',
+        regex=r'^\+?\d{9,15}Ksh',
         message='Enter a valid phone number'
     )
 
@@ -57,7 +57,7 @@ class Doctor(models.Model):
         return f"Dr. {self.first_name} {self.last_name} ({self.specialization})"
 
     class Meta:
-        db_table = "doctors_doctor"   # ✅ corrected
+        db_table = "doctors_doctor"
         verbose_name = "Doctor"
         verbose_name_plural = "Doctors"
         ordering = ["specialization", "last_name"]

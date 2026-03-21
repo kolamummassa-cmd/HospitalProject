@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -6,7 +7,13 @@ from django.utils import timezone
 from core.views import check_role
 from .models import Bill, BillItem, Payment
 from appointments.models import Appointment
-from patients.models import Patient
+
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
+from django_daraja.mpesa.core import MpesaClient
+
 
 
 @login_required
@@ -195,39 +202,113 @@ def bill_print(request, pk):
     return render(request, 'billing/bill_print.html', {'bill': bill})
 
 
+# ── ADD THESE IMPORTS at the top of your existing views.py ──
+
+
+
+# ── Pay Now — Triggers STK Push to patient's phone ──
+
+
 @login_required
 @check_role('receptionist')
-def bill_record_payment(request, pk):
-    """Record a payment for a bill"""
+def bill_pay_now(request, pk):
     bill = get_object_or_404(Bill, pk=pk)
 
     if bill.status == 'paid':
-        messages.warning(request, 'This bill has already been paid.')
-        return redirect('billing:bill_detail', pk=bill.id)
+        return JsonResponse({'success': False, 'message': 'This bill is already paid.'})
 
     if request.method == 'POST':
-        amount_paid = request.POST.get('amount_paid')
-        payment_method = request.POST.get('payment_method')
-        mpesa_number = request.POST.get('mpesa_number', '')
-        transaction_code = request.POST.get('transaction_code', '')
-        notes = request.POST.get('notes', '')
+        phone_number = request.POST.get('mpesa_number', '').strip()
 
-        Payment.objects.create(
-            bill=bill,
-            amount_paid=amount_paid,
-            payment_method=payment_method,
-            mpesa_number=mpesa_number,
-            transaction_code=transaction_code,
-            notes=notes,
-            recorded_by=request.user,
-        )
+        if not phone_number:
+            return JsonResponse({'success': False, 'message': 'Please enter an M-Pesa number.'})
 
-        # Mark bill as paid
-        bill.status = 'paid'
-        bill.paid_at = timezone.now()
-        bill.save()
+        try:
+            client = MpesaClient()
+            response = client.stk_push(
+                phone_number,
+                int(bill.total),
+                'ApexCareHMS',
+                f'Payment for Bill #{bill.id}',
+                settings.MPESA_CALLBACK_URL
+            ).json()
 
-        messages.success(request, f'Payment of KES {amount_paid} recorded successfully! Bill #{bill.id} is now PAID.')
-        return redirect('billing:bill_detail', pk=bill.id)
+            print("STK Push response:", response)
+
+            checkout_request_id = response.get('CheckoutRequestID', '')
+
+            # Save pending payment
+            Payment.objects.update_or_create(
+                bill=bill,
+                defaults={
+                    'amount_paid': bill.total,
+                    'payment_method': 'mpesa',
+                    'mpesa_number': phone_number,
+                    'payment_status': 'pending',
+                    'transaction_code': checkout_request_id,
+                    'recorded_by': request.user,
+                }
+            )
+
+            return JsonResponse({
+                'success': True,
+                'message': '✅ STK Push sent! Check your phone and enter your M-Pesa PIN.'
+            })
+
+        except Exception as e:
+            print("STK Push error:", str(e))
+            return JsonResponse({
+                'success': False,
+                'message': f'Payment failed: {str(e)}'
+            })
 
     return redirect('billing:bill_detail', pk=bill.id)
+
+
+# ── M-Pesa Callback — Safaricom calls this automatically after payment ──
+@csrf_exempt
+def mpesa_callback(request):
+    if request.method == 'POST':
+        try:
+            data        = json.loads(request.body)
+            result      = data['Body']['stkCallback']
+            result_code = result['ResultCode']
+            checkout_id = result['CheckoutRequestID']
+
+            # Find payment by checkout request id
+            payment = Payment.objects.filter(
+                transaction_code=checkout_id
+            ).first()
+
+            if not payment:
+                return JsonResponse({'ResultCode': 0, 'ResultDesc': 'Accepted'})
+
+            if result_code == 0:
+                # ✅ Payment successful
+                items = result['CallbackMetadata']['Item']
+                meta  = {item['Name']: item.get('Value') for item in items}
+
+                transaction_code = meta.get('MpesaReceiptNumber')
+                amount           = meta.get('Amount')
+                phone            = str(meta.get('PhoneNumber'))
+
+                payment.transaction_code = transaction_code
+                payment.mpesa_number     = phone
+                payment.amount_paid      = amount
+                payment.payment_status   = 'completed'
+                payment.save()
+
+                # Mark bill as paid
+                payment.bill.status  = 'paid'
+                payment.bill.paid_at = timezone.now()
+                payment.bill.save()
+
+            else:
+                # ❌ Failed or cancelled
+                payment.payment_status = 'failed'
+                payment.save()
+
+        except Exception as e:
+            print(f"Callback error: {e}")
+
+    return JsonResponse({'ResultCode': 0, 'ResultDesc': 'Accepted'})

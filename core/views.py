@@ -14,9 +14,9 @@ from doctors.models import Doctor
 from appointments.models import Appointment
 
 
-# ─────────────────────────────────────────────
+
 # AUTH VIEWS
-# ─────────────────────────────────────────────
+
 
 def login_view(request):
     """User login view"""
@@ -101,9 +101,9 @@ def logout_view(request):
     return redirect('core:login')
 
 
-# ─────────────────────────────────────────────
+
 # ROLE DECORATOR
-# ─────────────────────────────────────────────
+
 
 def check_role(role):
     """Decorator to check user role"""
@@ -119,9 +119,9 @@ def check_role(role):
     return decorator
 
 
-# ─────────────────────────────────────────────
+
 # DASHBOARD
-# ─────────────────────────────────────────────
+
 
 @login_required
 def dashboard(request):
@@ -130,7 +130,7 @@ def dashboard(request):
     role = user_profile.role
     context = {'role': role}
 
-    # ── ADMIN ──────────────────────────────────
+    # ADMIN
     if role == 'admin':
         today = timezone.now().date()
         context.update({
@@ -146,7 +146,7 @@ def dashboard(request):
             'recent_patients': Patient.objects.order_by('-created_at')[:5],
         })
 
-    # ── DOCTOR ─────────────────────────────────
+    #DOCTOR
     elif role == 'doctor':
         today = timezone.now().date()
         next_week = today + timedelta(days=7)
@@ -192,7 +192,7 @@ def dashboard(request):
                 'referrals_made': referrals_made,
             })
 
-    # ── RECEPTIONIST ───────────────────────────
+    # RECEPTIONIST
     elif role == 'receptionist':
         today = timezone.now().date()
         todays_apts = Appointment.objects.filter(
@@ -213,7 +213,7 @@ def dashboard(request):
             'recent_patients': Patient.objects.order_by('-created_at')[:5],
         })
 
-    # ── PATIENT ────────────────────────────────
+    # PATIENT
     elif role == 'patient':
         today = timezone.now().date()
 
@@ -259,9 +259,9 @@ def dashboard(request):
     return render(request, 'core/dashboard.html', context)
 
 
-# ─────────────────────────────────────────────
+
 # PROFILE
-# ─────────────────────────────────────────────
+
 
 @login_required
 def profile_view(request):
@@ -286,9 +286,9 @@ def profile_view(request):
     return render(request, 'core/profile.html', {'user_profile': user_profile})
 
 
-# ─────────────────────────────────────────────
+
 # STAFF MANAGEMENT
-# ─────────────────────────────────────────────
+
 
 @login_required
 @check_role('admin')

@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'appointments',
     'reports',
     'billing',
+    'django_daraja'
 ]
 
 MIDDLEWARE = [
@@ -137,3 +138,16 @@ LOGOUT_REDIRECT_URL = '/login/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+
+MPESA_ENVIRONMENT = 'sandbox'
+MPESA_CONSUMER_KEY = 'VWvSH7xYmNmd5Odwpc0d0kXXDHQbYuFcYU1uqauNBJPFP4Zx'
+MPESA_CONSUMER_SECRET = 'qOOFI94SAwykinNbPZ6Qmu344MNmqq5YAnbYxGkzmRcpI9QW3XZs0IJeULi48iwG'
+MPESA_SHORTCODE = '174379'
+MPESA_EXPRESS_SHORTCODE = '174379'
+MPESA_SHORTCODE_TYPE = 'paybill'
+MPESA_PASSKEY = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919'
+MPESA_INITIATOR_USERNAME = 'testapi'
+MPESA_INITIATOR_SECURITY_CREDENTIALS = 'Safaricom123!!'
+
+MPESA_CALLBACK_URL = 'https://sonorously-nonexpanding-tena.ngrok-free.dev/billing/mpesa/callback/'

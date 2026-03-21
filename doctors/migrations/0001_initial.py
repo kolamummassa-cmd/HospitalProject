@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
                 ('last_name', models.CharField(max_length=100)),
                 ('specialization', models.CharField(max_length=100)),
                 ('license_number', models.CharField(max_length=50, unique=True)),
-                ('contact', models.CharField(max_length=20, validators=[django.core.validators.RegexValidator(message='Enter a valid phone number', regex='^\\+?\\d{9,15}$')])),
+                ('contact', models.CharField(max_length=20, validators=[django.core.validators.RegexValidator(message='Enter a valid phone number', regex='^\\+?\\d{9,15}Ksh')])),
                 ('email', models.EmailField(blank=True, max_length=254, null=True)),
                 ('consultation_fee', models.DecimalField(decimal_places=2, default=0, max_digits=10)),
                 ('availability', models.TextField(blank=True, help_text='Example: Monday–Friday 9AM–5PM', null=True)),

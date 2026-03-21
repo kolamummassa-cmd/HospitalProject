@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Refer Patient - HMS{% endblock %}
+{% block title %}Refer Patient - ApexCare HMS{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -148,7 +148,7 @@ function showDoctorInfo(select) {
     const preview = document.getElementById('doctorPreview');
     if (opt.value) {
         document.getElementById('prevSpec').textContent = opt.dataset.spec || '-';
-        document.getElementById('prevFee').textContent = '$' + (opt.dataset.fee || '0');
+        document.getElementById('prevFee').textContent = 'Ksh' + (opt.dataset.fee || '0');
         document.getElementById('prevAvail').textContent = opt.dataset.avail || '-';
         preview.style.display = 'block';
     } else {

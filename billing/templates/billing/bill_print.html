@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Invoice #{{ bill.id }} - HMS</title>
+    <title>Invoice #{{ bill.id }} - ApexCare HMS</title>
+
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -174,9 +175,9 @@
 {# ── Header ── #}
 <div class="invoice-header">
     <div>
-        <div class="hospital-name">Hospital<span>+</span> HMS</div>
+        <div class="hospital-name"> ApexCare HMS</div>
         <p style="color:#64748b;margin-top:4px;font-size:13px;">
-            Hospital Management System<br>
+            ApexCare HMS<br>
             Nairobi, Kenya
         </p>
     </div>
@@ -233,8 +234,8 @@
             <td>{{ item.get_category_display }}</td>
             <td>{{ item.description }}</td>
             <td style="text-align:center;">{{ item.quantity }}</td>
-            <td style="text-align:right;">${{ item.unit_price }}</td>
-            <td style="text-align:right;"><strong>${{ item.total }}</strong></td>
+            <td style="text-align:right;">Ksh{{ item.unit_price }}</td>
+            <td style="text-align:right;"><strong>Ksh{{ item.total }}</strong></td>
         </tr>
         {% endfor %}
     </tbody>
@@ -245,17 +246,17 @@
     <table>
         <tr>
             <td style="color:#64748b;">Subtotal</td>
-            <td style="text-align:right;">${{ bill.subtotal }}</td>
+            <td style="text-align:right;">Ksh{{ bill.subtotal }}</td>
         </tr>
         {% if bill.discount > 0 %}
         <tr>
             <td style="color:#22c55e;">Discount</td>
-            <td style="text-align:right;color:#22c55e;">-${{ bill.discount }}</td>
+            <td style="text-align:right;color:#22c55e;">-Ksh{{ bill.discount }}</td>
         </tr>
         {% endif %}
         <tr class="total-row">
             <td>Total Due</td>
-            <td style="text-align:right;">${{ bill.total }}</td>
+            <td style="text-align:right;">Ksh{{ bill.total }}</td>
         </tr>
     </table>
 </div>
@@ -269,7 +270,7 @@
 
 {# ── Footer ── #}
 <div class="footer">
-    <span>Thank you for choosing Hospital+ HMS</span>
+    <span>Thank you for choosing ApexCare HMS</span>
     <span>Generated on {{ bill.created_at|date:'F d, Y' }}</span>
     {% if bill.paid_at %}
     <span style="color:#22c55e;font-weight:600;">✓ PAID on {{ bill.paid_at|date:'F d, Y' }}</span>

@@ -1,10 +1,10 @@
-from django.shortcuts import render
+
 
 # Create your views here.
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.utils import timezone
+
 from django.db.models import Q
 from .models import Appointment, Referral
 from patients.models import Patient
@@ -15,7 +15,7 @@ from core.views import check_role
 
 @login_required
 def appointment_list(request):
-    """List appointments based on role"""
+
 
     user_profile = request.user.profile
 
@@ -59,7 +59,7 @@ def appointment_list(request):
 @login_required
 @check_role('receptionist')
 def appointment_create(request):
-    """Create new appointment"""
+    # Create new appointment
     if request.method == 'POST':
         patient_id = request.POST.get('patient_id')
         doctor_id = request.POST.get('doctor_id')
@@ -116,6 +116,9 @@ def appointment_edit(request, pk):
 def appointment_detail(request, pk):
     """View appointment details"""
     appointment = get_object_or_404(Appointment, pk=pk)
+    if request.method == "POST":
+        appointment.status = request.POST.get("status")
+        appointment.save()
     context = {'appointment': appointment}
     return render(request, 'appointments/appointment_detail.html', context)
 
@@ -228,3 +231,5 @@ def referral_list(request):
         return redirect('core:dashboard')
 
     return render(request, 'appointments/referral_list.html', {'referrals': referrals})
+
+

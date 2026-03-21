@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}{{ action }} Patient - HMS{% endblock %}
+{% block title %}{{ action }} Patient - ApexCare HMS{% endblock %}
 
 {% block content %}
 <h1 class="mb-4"><i class="fas fa-users"></i> {{ action }} Patient</h1>
@@ -55,8 +55,8 @@
                     <div class="row">
 
                          <div class="col-md-6 mb-3">
-                            <label for="city" class="form-label">County *</label>
-                            <input type="text" class="form-control" id="city" name="city" value="{{ patient.city|default:'' }}" required>
+                            <label for="county" class="form-label">County *</label>
+                            <input type="text" class="form-control" id="county" name="county" value="{{ patient.county|default:'' }}" required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="address" class="form-label">Address *</label>

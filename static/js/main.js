@@ -43,9 +43,9 @@ function formatTime(time) {
 
 function showNotification(message, type = 'info') {
     const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.className = `alert alert-Ksh{type} alert-dismissible fade show`;
     alertDiv.innerHTML = `
-        ${message}
+        Ksh{message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
 

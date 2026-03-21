@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
                 ('last_name', models.CharField(max_length=100)),
                 ('date_of_birth', models.DateField()),
                 ('gender', models.CharField(choices=[('male', 'Male'), ('female', 'Female'), ('other', 'Other')], max_length=10)),
-                ('contact', models.CharField(max_length=20, validators=[django.core.validators.RegexValidator(message='Enter a valid phone number', regex='^\\+?\\d{9,15}$')])),
+                ('contact', models.CharField(max_length=20, validators=[django.core.validators.RegexValidator(message='Enter a valid phone number', regex='^\\+?\\d{9,15}Ksh')])),
                 ('email', models.EmailField(blank=True, max_length=254, null=True)),
                 ('address', models.TextField()),
                 ('city', models.CharField(max_length=100)),

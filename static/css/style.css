@@ -236,3 +236,7 @@ body .footer p { margin: 0; color: rgba(255,255,255,0.75); }
     .sidebar { width: 180px; }
     .main-content { margin-left: 180px; }
 }
+
+.royal-blue-bg{
+    background-color: #4169E1 !important
+}

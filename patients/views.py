@@ -47,9 +47,7 @@ def patient_create(request):
         date_of_birth = request.POST.get('date_of_birth')
         gender = request.POST.get('gender')
         address = request.POST.get('address')
-        city = request.POST.get('city')
-        state = request.POST.get('state')
-        zip_code = request.POST.get('zip_code')
+        county = request.POST.get('county')
         blood_type = request.POST.get('blood_type')
         emergency_contact = request.POST.get('emergency_contact')
         emergency_contact_name = request.POST.get('emergency_contact_name')
@@ -77,9 +75,7 @@ def patient_create(request):
                 date_of_birth=date_of_birth,
                 gender=gender,
                 address=address,
-                city=city,
-                state=state,
-                zip_code=zip_code,
+                county=county,
                 blood_type=blood_type,
                 emergency_contact=emergency_contact,
                 emergency_contact_name=emergency_contact_name,
@@ -107,9 +103,8 @@ def patient_edit(request, pk):
         patient.date_of_birth = request.POST.get('date_of_birth', patient.date_of_birth)
         patient.gender = request.POST.get('gender', patient.gender)
         patient.address = request.POST.get('address', patient.address)
-        patient.city = request.POST.get('county', patient.county)
-        # patient.state = request.POST.get('state', patient.state)
-        # patient.zip_code = request.POST.get('zip_code', patient.zip_code)
+        patient.county = request.POST.get('county', patient.county)
+
         patient.blood_type = request.POST.get('blood_type', patient.blood_type)
         patient.emergency_contact = request.POST.get('emergency_contact', patient.emergency_contact)
         patient.emergency_contact_name = request.POST.get('emergency_contact_name', patient.emergency_contact_name)
@@ -157,6 +152,5 @@ def patient_delete(request, pk):
 
     context = {'patient': patient}
     return render(request, 'patients/patient_confirm_delete.html', context)
-
 
 

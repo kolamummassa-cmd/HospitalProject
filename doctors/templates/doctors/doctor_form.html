@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}{{ action }} Doctor - HMS{% endblock %}
+{% block title %}{{ action }} Doctor - ApexCare HMS{% endblock %}
 
 {% block content %}
 <h1 class="mb-4"><i class="fas fa-stethoscope"></i> {{ action }} Doctor</h1>
@@ -55,7 +55,7 @@
                     <h5 class="mb-3 mt-4">Professional Details</h5>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="consultation_fee" class="form-label">Consultation Fee ($)</label>
+                            <label for="consultation_fee" class="form-label">Consultation Fee (Ksh)</label>
                             <input type="number" class="form-control" id="consultation_fee"
                                    name="consultation_fee" step="0.01"
                                    value="{{ doctor.consultation_fee|default:0 }}">

@@ -94,7 +94,7 @@ class BillItem(models.Model):
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
-        return f"{self.description} x{self.quantity} = ${self.total}"
+        return f"{self.description} x{self.quantity} = Ksh{self.total}"
 
     @property
     def total(self):
@@ -107,7 +107,6 @@ class BillItem(models.Model):
 
 
 class Payment(models.Model):
-    """Payment record for a bill"""
 
     PAYMENT_METHOD_CHOICES = [
         ('mpesa', 'M-Pesa'),
@@ -115,6 +114,13 @@ class Payment(models.Model):
         ('bank', 'Bank Transfer'),
         ('insurance', 'Insurance'),
         ('other', 'Other'),
+    ]
+
+    # ── ADD THIS ──
+    PAYMENT_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
     ]
 
     bill = models.OneToOneField(
@@ -132,12 +138,10 @@ class Payment(models.Model):
     mpesa_number = models.CharField(
         max_length=20,
         blank=True, null=True,
-        help_text="e.g. 0712345678"
     )
     transaction_code = models.CharField(
         max_length=50,
         blank=True, null=True,
-        help_text="M-Pesa transaction code e.g. QKA1234XYZ"
     )
     notes = models.TextField(blank=True, null=True)
     recorded_by = models.ForeignKey(
@@ -146,6 +150,14 @@ class Payment(models.Model):
         null=True, blank=True,
         related_name='payments_recorded'
     )
+
+    # ── ADD THIS ──
+    payment_status = models.CharField(
+        max_length=20,
+        choices=PAYMENT_STATUS_CHOICES,
+        default='completed'
+    )
+
     paid_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

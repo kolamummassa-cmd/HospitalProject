@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Dashboard - HMS{% endblock %}
+{% block title %}Dashboard - ApexCare HMS{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -143,7 +143,7 @@
                                         <th>Name</th>
                                         <th>Gender</th>
                                         <th>Contact</th>
-                                        <th>City</th>
+                                        <th>County</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -895,7 +895,7 @@
                         <div class="row text-center">
                             <div class="col-6 mb-2">
                                 <small class="text-muted d-block">Consultation Fee</small>
-                                <strong>${{ next_appointment.doctor.consultation_fee }}</strong>
+                                <strong>Ksh{{ next_appointment.doctor.consultation_fee }}</strong>
                             </div>
                             <div class="col-6 mb-2">
                                 <small class="text-muted d-block">Availability</small>

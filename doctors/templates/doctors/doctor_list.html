@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Doctors - HMS{% endblock %}
+{% block title %}Doctors - ApexCare HMS{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -39,7 +39,7 @@
                                 <td>{{ doctor.specialization }}</td>
                                 <td>{{ doctor.license_number }}</td>
                                 <td>{{ doctor.contact }}</td>
-                                <td>${{ doctor.consultation_fee }}</td>
+                                <td>Ksh{{ doctor.consultation_fee }}</td>
                                 <td>
                                     {% if doctor.is_available %}
                                         <span class="badge bg-success">Available</span>
